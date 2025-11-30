@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "figma-mcp-bridge": "./src/index.js"
+    "figma-mcp-bridge": "src/index.js"
   },
   "scripts": {
     "start": "node src/index.js"
@@ -35,6 +35,10 @@
     "src",
     "plugin"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "ws": "^8.14.0"
