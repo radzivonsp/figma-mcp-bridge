@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server that enables Claude to read and manipulate
 
 ## Features
 
-- **44 Figma operations** - Create shapes, modify styles, manage components, export assets
+- **62 Figma operations** - Create shapes, modify styles, manage components, export assets
 - **Real-time bidirectional communication** - Changes appear instantly in Figma
 - **Token-optimized queries** - Efficient variable search and node traversal for AI interactions
 - **Full Figma API access** - Styles, variables, auto-layout, boolean operations, and more
@@ -224,24 +224,6 @@ Create an ellipse, circle, arc, or ring.
 | `arcData.endingAngle` | number | No | | Ending angle in radians |
 | `arcData.innerRadius` | number | No | | Inner radius ratio (0-1) for rings |
 
-#### `figma_create_polygon`
-Create a polygon or star shape.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `x` | number | No | `0` | X position |
-| `y` | number | No | `0` | Y position |
-| `width` | number | No | `100` | Width |
-| `height` | number | No | `100` | Height |
-| `pointCount` | number | No | `5` | Number of sides/points (min 3) |
-| `innerRadius` | number | No | | Inner radius ratio for stars (0-1) |
-| `cornerRadius` | number | No | | Corner radius for vertices |
-| `name` | string | No | | Node name |
-| `fills` | color | No | | Fill color |
-| `strokes` | color | No | | Stroke color |
-| `strokeWeight` | number | No | | Stroke weight |
-| `parentId` | string | No | | Parent node ID |
-
 #### `figma_create_line`
 Create a line.
 
@@ -256,23 +238,6 @@ Create a line.
 | `strokeCap` | string | No | `"NONE"` | Cap: `NONE`, `ROUND`, `SQUARE`, `ARROW_LINES`, `ARROW_EQUILATERAL` |
 | `name` | string | No | `"Line"` | Node name |
 | `parentId` | string | No | | Parent node ID |
-
-#### `figma_create_vector`
-Create a custom vector shape using SVG path data.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `data` | string | Yes | | SVG path (e.g., `"M 0 100 L 100 100 L 50 0 Z"`) |
-| `x` | number | No | `0` | X position |
-| `y` | number | No | `0` | Y position |
-| `windingRule` | string | No | `"NONZERO"` | Fill rule: `NONZERO`, `EVENODD`, `NONE` |
-| `name` | string | No | `"Vector"` | Node name |
-| `fills` | color | No | | Fill color |
-| `strokes` | color | No | | Stroke color |
-| `strokeWeight` | number | No | | Stroke weight |
-| `parentId` | string | No | | Parent node ID |
-
-> Supports M (move), L (line), Q (quadratic), C (cubic bezier), Z (close). No arcs.
 
 #### `figma_create_frame`
 Create a frame container (supports auto-layout).
@@ -421,16 +386,6 @@ Set effects (shadows, blurs).
 }
 ```
 
-#### `figma_set_blend_mode`
-Set layer blend mode.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `nodeId` | string | Yes | Node to modify |
-| `blendMode` | string | Yes | Blend mode |
-
-**Blend modes:** `PASS_THROUGH`, `NORMAL`, `DARKEN`, `MULTIPLY`, `LINEAR_BURN`, `COLOR_BURN`, `LIGHTEN`, `SCREEN`, `LINEAR_DODGE`, `COLOR_DODGE`, `OVERLAY`, `SOFT_LIGHT`, `HARD_LIGHT`, `DIFFERENCE`, `EXCLUSION`, `HUE`, `SATURATION`, `COLOR`, `LUMINOSITY`
-
 #### `figma_apply_style`
 Apply a local style to a node.
 
@@ -556,15 +511,6 @@ Set resize constraints (non-auto-layout frames only).
 | `horizontal` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
 | `vertical` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
 
-#### `figma_boolean_operation`
-Combine shapes using boolean operations.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `operation` | string | Yes | `UNION`, `SUBTRACT`, `INTERSECT`, `EXCLUDE`, `FLATTEN` |
-| `nodeIds` | string[] | Yes | Nodes to combine (min 2) |
-| `name` | string | No | Result node name |
-
 ---
 
 ### Navigation Commands
@@ -582,13 +528,6 @@ Switch to a different page.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `pageId` | string | Yes | Page ID to switch to |
-
-#### `figma_zoom_to_node`
-Zoom viewport to focus on nodes.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `nodeIds` | string[] | Yes | Nodes to zoom to |
 
 ---
 
@@ -712,7 +651,7 @@ figma_search_styles({ nameContains: 'primary', type: 'PAINT' })
 
 ### Port Already in Use
 
-The server automatically tries ports 3055-3060. To use a specific port:
+The server automatically tries ports 3055-3070. To use a specific port:
 ```bash
 FIGMA_BRIDGE_PORT=3057 node src/index.js
 ```

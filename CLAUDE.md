@@ -23,7 +23,7 @@ src/
 ├── server.js          # MCP server setup (McpServer configuration)
 ├── websocket.js       # FigmaBridge class - WebSocket connection management
 └── tools/
-    ├── index.js       # Tool registration with Zod schemas (44 tools)
+    ├── index.js       # Tool registration with Zod schemas (62 tools)
     ├── context.js     # figma_get_context handler
     ├── pages.js       # figma_list_pages handler
     ├── nodes.js       # figma_get_nodes handler
