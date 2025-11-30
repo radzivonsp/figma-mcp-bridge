@@ -163,7 +163,7 @@ export function registerTools(server, bridge) {
   // figma_set_fills - Set fill colors on a node
   server.tool(
     'figma_set_fills',
-    'Set the fill color(s) on a Figma node. Accepts hex color shorthand like { color: "#FF0000" } or full fills array.',
+    'Set fill color. Accepts hex shorthand or fills array.',
     {
       nodeId: z.string().describe('The node ID to modify'),
       fills: colorSchema.describe('Fill color - use { color: "#RRGGBB" } for simple colors')
@@ -174,7 +174,7 @@ export function registerTools(server, bridge) {
   // figma_set_strokes - Set stroke colors on a node
   server.tool(
     'figma_set_strokes',
-    'Set the stroke color(s) on a Figma node. Accepts hex color shorthand like { color: "#FF0000" } or full strokes array.',
+    'Set stroke color. Accepts hex shorthand or strokes array.',
     {
       nodeId: z.string().describe('The node ID to modify'),
       strokes: colorSchema.describe('Stroke color - use { color: "#RRGGBB" } for simple colors'),
@@ -186,7 +186,7 @@ export function registerTools(server, bridge) {
   // figma_create_rectangle - Create a new rectangle
   server.tool(
     'figma_create_rectangle',
-    'Create a new rectangle in the Figma document. Returns the created node.',
+    'Create a rectangle.',
     {
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
@@ -202,7 +202,7 @@ export function registerTools(server, bridge) {
   // figma_set_text - Set text content on a text node
   server.tool(
     'figma_set_text',
-    'Set the text content of a text node. Automatically loads required fonts.',
+    'Set text content. Auto-loads fonts.',
     {
       nodeId: z.string().describe('The text node ID to modify'),
       text: z.string().describe('The new text content')
@@ -213,7 +213,7 @@ export function registerTools(server, bridge) {
   // figma_clone_nodes - Clone/duplicate nodes
   server.tool(
     'figma_clone_nodes',
-    'Clone (duplicate) one or more nodes. Returns the cloned nodes.',
+    'Duplicate nodes.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to clone'),
       parentId: z.string().optional().describe('Parent node ID for clones (optional)'),
@@ -232,7 +232,7 @@ export function registerTools(server, bridge) {
   // figma_delete_nodes - Delete nodes
   server.tool(
     'figma_delete_nodes',
-    'Delete one or more nodes from the Figma document.',
+    'Delete nodes.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to delete')
     },
@@ -242,7 +242,7 @@ export function registerTools(server, bridge) {
   // figma_move_nodes - Move nodes
   server.tool(
     'figma_move_nodes',
-    'Move one or more nodes to a new position. Use relative=true to offset from current position.',
+    'Move nodes. Use relative=true for offset.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to move'),
       x: z.number().optional().describe('X position (absolute) or offset (if relative=true)'),
@@ -267,7 +267,7 @@ export function registerTools(server, bridge) {
   // figma_set_opacity - Set node opacity
   server.tool(
     'figma_set_opacity',
-    'Set the opacity (transparency) of a node. 0 is fully transparent, 1 is fully opaque.',
+    'Set opacity (0-1).',
     {
       nodeId: z.string().describe('The node ID to modify'),
       opacity: z.number().min(0).max(1).describe('Opacity value from 0 (transparent) to 1 (opaque)')
@@ -278,7 +278,7 @@ export function registerTools(server, bridge) {
   // figma_set_corner_radius - Set corner radius
   server.tool(
     'figma_set_corner_radius',
-    'Set the corner radius of a node. Use radius for uniform corners, or individual values for different corners.',
+    'Set corner radius. Use individual values for asymmetric.',
     {
       nodeId: z.string().describe('The node ID to modify'),
       radius: z.number().optional().describe('Uniform corner radius for all corners'),
@@ -293,7 +293,7 @@ export function registerTools(server, bridge) {
   // figma_group_nodes - Group nodes
   server.tool(
     'figma_group_nodes',
-    'Group multiple nodes together into a single group.',
+    'Group nodes.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to group together'),
       name: z.string().optional().default('Group').describe('Name for the new group')
@@ -304,7 +304,7 @@ export function registerTools(server, bridge) {
   // figma_ungroup_nodes - Ungroup nodes
   server.tool(
     'figma_ungroup_nodes',
-    'Ungroup one or more group nodes, releasing their children.',
+    'Ungroup nodes.',
     {
       nodeIds: z.array(z.string()).describe('Array of group node IDs to ungroup')
     },
@@ -318,7 +318,7 @@ export function registerTools(server, bridge) {
   // figma_create_frame - Create a new frame
   server.tool(
     'figma_create_frame',
-    'Create a new frame in the Figma document. Frames are containers that can hold other elements and support auto-layout.',
+    'Create a frame.',
     {
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
@@ -334,7 +334,7 @@ export function registerTools(server, bridge) {
   // figma_create_text - Create a new text node
   server.tool(
     'figma_create_text',
-    'Create a new text node in the Figma document.',
+    'Create a text node.',
     {
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
@@ -356,7 +356,7 @@ export function registerTools(server, bridge) {
   // figma_set_selection - Set the current selection
   server.tool(
     'figma_set_selection',
-    'Set the current selection in Figma. Pass an empty array to clear selection.',
+    'Set selection. Empty array clears.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to select (empty array to clear)')
     },
@@ -396,7 +396,7 @@ export function registerTools(server, bridge) {
   // figma_create_ellipse - Create an ellipse/circle
   server.tool(
     'figma_create_ellipse',
-    'Create a new ellipse (circle/oval) in the Figma document. Use arcData for partial arcs or rings.',
+    'Create ellipse. Use arcData for arcs/rings.',
     {
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
@@ -417,7 +417,7 @@ export function registerTools(server, bridge) {
   // figma_set_effects - Set effects (shadows, blurs)
   server.tool(
     'figma_set_effects',
-    'Set effects (shadows, blurs) on a node. Replaces existing effects.',
+    'Set effects. Replaces existing.',
     {
       nodeId: z.string().describe('The node ID to modify'),
       effects: z.array(z.union([
@@ -490,7 +490,7 @@ export function registerTools(server, bridge) {
   // figma_create_component - Create a component
   server.tool(
     'figma_create_component',
-    'Create a new component. Components are reusable design elements that can be instanced.',
+    'Create a component.',
     {
       fromNodeId: z.string().optional().describe('Convert an existing node to a component'),
       x: z.number().optional().default(0).describe('X position'),
@@ -508,7 +508,7 @@ export function registerTools(server, bridge) {
   // figma_create_instance - Create an instance of a component
   server.tool(
     'figma_create_instance',
-    'Create an instance of a component. Instances inherit properties from their main component.',
+    'Create a component instance.',
     {
       componentId: z.string().describe('The component ID to create an instance of'),
       x: z.number().optional().default(0).describe('X position'),
@@ -636,7 +636,7 @@ export function registerTools(server, bridge) {
   // figma_create_line - Create a line
   server.tool(
     'figma_create_line',
-    'Create a line in Figma. Lines are one-dimensional objects defined by length and rotation.',
+    'Create a line.',
     {
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
@@ -667,63 +667,64 @@ export function registerTools(server, bridge) {
   // Phase 4 Tools: Polygons, Boolean Operations, Viewport, Blend Mode, Detach
   // ============================================================
 
-  // figma_create_polygon - Create a polygon or star
-  server.tool(
-    'figma_create_polygon',
-    'Create a polygon (triangle, pentagon, hexagon, etc.) or star shape. Set innerRadius (0-1) to create a star with spiky points.',
-    {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels'),
-      height: z.number().optional().default(100).describe('Height in pixels'),
-      pointCount: z.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
-      innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
-      name: z.string().optional().describe('Node name'),
-      fills: colorSchema.optional().describe('Fill color'),
-      strokes: colorSchema.optional().describe('Stroke color'),
-      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
-      cornerRadius: z.number().optional().describe('Corner radius for vertices'),
-      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
-    },
-    async (args) => handleCreatePolygon(bridge, args)
-  );
+  // DISABLED - Uncomment to enable advanced shape tools
+  // // figma_create_polygon - Create a polygon or star
+  // server.tool(
+  //   'figma_create_polygon',
+  //   'Create a polygon (triangle, pentagon, hexagon, etc.) or star shape. Set innerRadius (0-1) to create a star with spiky points.',
+  //   {
+  //     x: z.number().optional().default(0).describe('X position'),
+  //     y: z.number().optional().default(0).describe('Y position'),
+  //     width: z.number().optional().default(100).describe('Width in pixels'),
+  //     height: z.number().optional().default(100).describe('Height in pixels'),
+  //     pointCount: z.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
+  //     innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
+  //     name: z.string().optional().describe('Node name'),
+  //     fills: colorSchema.optional().describe('Fill color'),
+  //     strokes: colorSchema.optional().describe('Stroke color'),
+  //     strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
+  //     cornerRadius: z.number().optional().describe('Corner radius for vertices'),
+  //     parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+  //   },
+  //   async (args) => handleCreatePolygon(bridge, args)
+  // );
 
-  // figma_boolean_operation - Perform boolean operations on shapes
-  server.tool(
-    'figma_boolean_operation',
-    'Combine multiple shapes using boolean operations (union, subtract, intersect, exclude) or flatten them into a single vector.',
-    {
-      operation: z.enum(['UNION', 'SUBTRACT', 'INTERSECT', 'EXCLUDE', 'FLATTEN']).describe('Boolean operation type: UNION (combine), SUBTRACT (cut), INTERSECT (overlap only), EXCLUDE (non-overlap only), FLATTEN (destructive vector)'),
-      nodeIds: z.array(z.string()).min(2).describe('Array of node IDs to combine (minimum 2 nodes)'),
-      name: z.string().optional().describe('Name for the resulting node')
-    },
-    async (args) => handleBooleanOperation(bridge, args)
-  );
+  // // figma_boolean_operation - Perform boolean operations on shapes
+  // server.tool(
+  //   'figma_boolean_operation',
+  //   'Combine multiple shapes using boolean operations (union, subtract, intersect, exclude) or flatten them into a single vector.',
+  //   {
+  //     operation: z.enum(['UNION', 'SUBTRACT', 'INTERSECT', 'EXCLUDE', 'FLATTEN']).describe('Boolean operation type: UNION (combine), SUBTRACT (cut), INTERSECT (overlap only), EXCLUDE (non-overlap only), FLATTEN (destructive vector)'),
+  //     nodeIds: z.array(z.string()).min(2).describe('Array of node IDs to combine (minimum 2 nodes)'),
+  //     name: z.string().optional().describe('Name for the resulting node')
+  //   },
+  //   async (args) => handleBooleanOperation(bridge, args)
+  // );
 
-  // figma_zoom_to_node - Zoom viewport to focus on specific nodes
-  server.tool(
-    'figma_zoom_to_node',
-    'Scroll and zoom the Figma viewport to focus on specific nodes. Automatically calculates zoom level to fit all specified nodes.',
-    {
-      nodeIds: z.array(z.string()).min(1).describe('Array of node IDs to zoom to')
-    },
-    async (args) => handleZoomToNode(bridge, args)
-  );
+  // // figma_zoom_to_node - Zoom viewport to focus on specific nodes
+  // server.tool(
+  //   'figma_zoom_to_node',
+  //   'Scroll and zoom the Figma viewport to focus on specific nodes. Automatically calculates zoom level to fit all specified nodes.',
+  //   {
+  //     nodeIds: z.array(z.string()).min(1).describe('Array of node IDs to zoom to')
+  //   },
+  //   async (args) => handleZoomToNode(bridge, args)
+  // );
 
-  // figma_set_blend_mode - Set blend mode on a node
-  server.tool(
-    'figma_set_blend_mode',
-    'Set the blend mode (layer blending) of a node. Controls how the node visually blends with layers below it.',
-    {
-      nodeId: z.string().describe('The node ID to modify'),
-      blendMode: z.enum([
-        'PASS_THROUGH', 'NORMAL', 'DARKEN', 'MULTIPLY', 'LINEAR_BURN', 'COLOR_BURN',
-        'LIGHTEN', 'SCREEN', 'LINEAR_DODGE', 'COLOR_DODGE', 'OVERLAY', 'SOFT_LIGHT',
-        'HARD_LIGHT', 'DIFFERENCE', 'EXCLUSION', 'HUE', 'SATURATION', 'COLOR', 'LUMINOSITY'
-      ]).describe('Blend mode: NORMAL (default), MULTIPLY (darken), SCREEN (lighten), OVERLAY (contrast), etc.')
-    },
-    async (args) => handleSetBlendMode(bridge, args)
-  );
+  // // figma_set_blend_mode - Set blend mode on a node
+  // server.tool(
+  //   'figma_set_blend_mode',
+  //   'Set the blend mode (layer blending) of a node. Controls how the node visually blends with layers below it.',
+  //   {
+  //     nodeId: z.string().describe('The node ID to modify'),
+  //     blendMode: z.enum([
+  //       'PASS_THROUGH', 'NORMAL', 'DARKEN', 'MULTIPLY', 'LINEAR_BURN', 'COLOR_BURN',
+  //       'LIGHTEN', 'SCREEN', 'LINEAR_DODGE', 'COLOR_DODGE', 'OVERLAY', 'SOFT_LIGHT',
+  //       'HARD_LIGHT', 'DIFFERENCE', 'EXCLUSION', 'HUE', 'SATURATION', 'COLOR', 'LUMINOSITY'
+  //     ]).describe('Blend mode: NORMAL (default), MULTIPLY (darken), SCREEN (lighten), OVERLAY (contrast), etc.')
+  //   },
+  //   async (args) => handleSetBlendMode(bridge, args)
+  // );
 
   // figma_detach_instance - Detach instance from component
   server.tool(
@@ -752,23 +753,24 @@ export function registerTools(server, bridge) {
     async (args) => handleSetLayoutAlign(bridge, args)
   );
 
-  // figma_create_vector - Create a custom vector path
-  server.tool(
-    'figma_create_vector',
-    'Create a custom vector shape using SVG-style path data. Supports M (move), L (line), Q (quadratic curve), C (cubic bezier), Z (close).',
-    {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      data: z.string().describe('SVG path string (e.g., "M 0 100 L 100 100 L 50 0 Z" for triangle)'),
-      windingRule: z.enum(['NONZERO', 'EVENODD', 'NONE']).optional().default('NONZERO').describe('Fill rule: NONZERO (solid), EVENODD (holes), NONE (outline only)'),
-      name: z.string().optional().default('Vector').describe('Node name'),
-      fills: colorSchema.optional().describe('Fill color'),
-      strokes: colorSchema.optional().describe('Stroke color'),
-      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
-      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
-    },
-    async (args) => handleCreateVector(bridge, args)
-  );
+  // DISABLED - Uncomment to enable custom vector paths
+  // // figma_create_vector - Create a custom vector path
+  // server.tool(
+  //   'figma_create_vector',
+  //   'Create a custom vector shape using SVG-style path data. Supports M (move), L (line), Q (quadratic curve), C (cubic bezier), Z (close).',
+  //   {
+  //     x: z.number().optional().default(0).describe('X position'),
+  //     y: z.number().optional().default(0).describe('Y position'),
+  //     data: z.string().describe('SVG path string (e.g., "M 0 100 L 100 100 L 50 0 Z" for triangle)'),
+  //     windingRule: z.enum(['NONZERO', 'EVENODD', 'NONE']).optional().default('NONZERO').describe('Fill rule: NONZERO (solid), EVENODD (holes), NONE (outline only)'),
+  //     name: z.string().optional().default('Vector').describe('Node name'),
+  //     fills: colorSchema.optional().describe('Fill color'),
+  //     strokes: colorSchema.optional().describe('Stroke color'),
+  //     strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
+  //     parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+  //   },
+  //   async (args) => handleCreateVector(bridge, args)
+  // );
 
   // figma_rename_node - Rename nodes
   server.tool(
@@ -804,7 +806,7 @@ export function registerTools(server, bridge) {
   // figma_set_text_style - Set font properties on existing text
   server.tool(
     'figma_set_text_style',
-    'Set font properties on a text node. Changes apply to entire text (uniform style).',
+    'Set text font properties.',
     {
       nodeId: z.string().describe('Text node ID'),
       fontSize: z.number().optional().describe('Font size in pixels'),
@@ -830,7 +832,7 @@ export function registerTools(server, bridge) {
   // figma_create_paint_style - Create a local paint style
   server.tool(
     'figma_create_paint_style',
-    'Create a new local paint style (color style).',
+    'Create a paint style.',
     {
       name: z.string().describe('Style name (use "/" for folders, e.g., "Brand/Primary")'),
       fills: colorSchema.describe('Fill color - use { color: "#RRGGBB" } for simple colors'),
@@ -842,7 +844,7 @@ export function registerTools(server, bridge) {
   // figma_create_text_style - Create a local text style
   server.tool(
     'figma_create_text_style',
-    'Create a new local text style.',
+    'Create a text style.',
     {
       name: z.string().describe('Style name (use "/" for folders)'),
       fontFamily: z.string().optional().default('Inter').describe('Font family'),
@@ -1027,16 +1029,17 @@ export function registerTools(server, bridge) {
     async (args) => handleDeletePage(bridge, args)
   );
 
-  // figma_reorder_page - Reorder a page
-  server.tool(
-    'figma_reorder_page',
-    'Change the position of a page in the page list.',
-    {
-      pageId: z.string().describe('The page ID to reorder'),
-      index: z.number().describe('New position in the page list (0 = first)')
-    },
-    async (args) => handleReorderPage(bridge, args)
-  );
+  // DISABLED - Uncomment to enable page reordering
+  // // figma_reorder_page - Reorder a page
+  // server.tool(
+  //   'figma_reorder_page',
+  //   'Change the position of a page in the page list.',
+  //   {
+  //     pageId: z.string().describe('The page ID to reorder'),
+  //     index: z.number().describe('New position in the page list (0 = first)')
+  //   },
+  //   async (args) => handleReorderPage(bridge, args)
+  // );
 
   // ============================================================
   // Node Structure Tools
@@ -1108,28 +1111,29 @@ export function registerTools(server, bridge) {
     async (args) => handleSetRotation(bridge, args)
   );
 
-  // figma_set_layout_grids - Set layout grids on a frame
-  server.tool(
-    'figma_set_layout_grids',
-    'Set layout grids on a frame. Grids help with alignment and spacing. Pass an empty array to remove all grids.',
-    {
-      nodeId: z.string().describe('The frame node ID to set grids on'),
-      layoutGrids: z.array(z.object({
-        pattern: z.enum(['COLUMNS', 'ROWS', 'GRID']).describe('Grid pattern type'),
-        sectionSize: z.number().optional().describe('Size of each column/row/cell in pixels'),
-        visible: z.boolean().optional().default(true).describe('Whether grid is visible'),
-        color: z.object({
-          r: z.number().min(0).max(1).describe('Red (0-1)'),
-          g: z.number().min(0).max(1).describe('Green (0-1)'),
-          b: z.number().min(0).max(1).describe('Blue (0-1)'),
-          a: z.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
-        }).optional().describe('Grid color with alpha'),
-        alignment: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH']).optional().describe('Column/row alignment (for COLUMNS/ROWS pattern)'),
-        gutterSize: z.number().optional().describe('Gutter size between columns/rows in pixels'),
-        offset: z.number().optional().describe('Offset from edge in pixels'),
-        count: z.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
-      })).describe('Array of layout grid configurations')
-    },
-    async (args) => handleSetLayoutGrids(bridge, args)
-  );
+  // DISABLED - Uncomment to enable layout grids
+  // // figma_set_layout_grids - Set layout grids on a frame
+  // server.tool(
+  //   'figma_set_layout_grids',
+  //   'Set layout grids on a frame. Grids help with alignment and spacing. Pass an empty array to remove all grids.',
+  //   {
+  //     nodeId: z.string().describe('The frame node ID to set grids on'),
+  //     layoutGrids: z.array(z.object({
+  //       pattern: z.enum(['COLUMNS', 'ROWS', 'GRID']).describe('Grid pattern type'),
+  //       sectionSize: z.number().optional().describe('Size of each column/row/cell in pixels'),
+  //       visible: z.boolean().optional().default(true).describe('Whether grid is visible'),
+  //       color: z.object({
+  //         r: z.number().min(0).max(1).describe('Red (0-1)'),
+  //         g: z.number().min(0).max(1).describe('Green (0-1)'),
+  //         b: z.number().min(0).max(1).describe('Blue (0-1)'),
+  //         a: z.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
+  //       }).optional().describe('Grid color with alpha'),
+  //       alignment: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH']).optional().describe('Column/row alignment (for COLUMNS/ROWS pattern)'),
+  //       gutterSize: z.number().optional().describe('Gutter size between columns/rows in pixels'),
+  //       offset: z.number().optional().describe('Offset from edge in pixels'),
+  //       count: z.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
+  //     })).describe('Array of layout grid configurations')
+  //   },
+  //   async (args) => handleSetLayoutGrids(bridge, args)
+  // );
 }
