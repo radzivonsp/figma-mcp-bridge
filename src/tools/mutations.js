@@ -3989,3 +3989,63 @@ export async function handleSetLayoutGrids(bridge, args) {
     };
   }
 }
+
+/**
+ * Combine components as variants into a component set
+ */
+export async function handleCombineAsVariants(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: 'NOT_CONNECTED',
+            message: 'Figma plugin is not connected.'
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+
+  const { componentIds } = args;
+
+  if (!componentIds || !Array.isArray(componentIds) || componentIds.length < 2) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: 'INVALID_PARAMS',
+            message: 'componentIds must be an array with at least 2 component IDs'
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('combine_as_variants', args);
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(result, null, 2)
+      }]
+    };
+  } catch (error) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: error.code || 'UNKNOWN_ERROR',
+            message: error.message
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+}

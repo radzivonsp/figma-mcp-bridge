@@ -81,7 +81,8 @@ import {
   // Additional commands
   handleDuplicatePage,
   handleSetRotation,
-  handleSetLayoutGrids
+  handleSetLayoutGrids,
+  handleCombineAsVariants
 } from './mutations.js';
 
 // Color schema for fill/stroke shorthand
@@ -1109,6 +1110,16 @@ export function registerTools(server, bridge) {
       rotation: z.number().min(-180).max(180).describe('Rotation in degrees (-180 to 180)')
     },
     async (args) => handleSetRotation(bridge, args)
+  );
+
+  // figma_combine_as_variants - Combine components into a component set
+  server.tool(
+    'figma_combine_as_variants',
+    'Combine multiple components into a component set with variants. Components must use variant naming (e.g., "Size=Large", "State=Active"). Returns the new component set.',
+    {
+      componentIds: z.array(z.string()).min(2).describe('Array of component IDs to combine (minimum 2)')
+    },
+    async (args) => handleCombineAsVariants(bridge, args)
   );
 
   // DISABLED - Uncomment to enable layout grids

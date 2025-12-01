@@ -201,6 +201,8 @@ async function handleCommand(command, payload) {
       return await setRotation(payload);
     case 'set_layout_grids':
       return await setLayoutGrids(payload);
+    case 'combine_as_variants':
+      return await combineAsVariants(payload);
 
     default:
       throw new Error(`Unknown command: ${command}`);
@@ -2039,8 +2041,12 @@ async function setVariable(params) {
       throw new Error('Node ' + nodeId + ' (' + node.type + ') does not support setBoundVariable');
     }
 
-    // Validate the field exists on the node
-    if (!(field in node)) {
+    // Special text fields that are valid for setBoundVariable but don't exist directly on the node
+    var textBindableFields = ['fontFamily', 'fontStyle', 'fontWeight', 'paragraphSpacing', 'paragraphIndent'];
+    var isTextSpecialField = node.type === 'TEXT' && textBindableFields.indexOf(field) !== -1;
+
+    // Validate the field exists on the node (or is a special text field)
+    if (!(field in node) && !isTextSpecialField) {
       throw new Error('Node ' + nodeId + ' (' + node.type + ') does not have field "' + field + '"');
     }
 
@@ -3969,5 +3975,41 @@ async function setLayoutGrids({ nodeId, layoutGrids }) {
     nodeName: node.name,
     gridCount: node.layoutGrids.length,
     layoutGrids: clone(node.layoutGrids)
+  };
+}
+
+// Combine components as variants into a component set
+async function combineAsVariants(params) {
+  var componentIds = params.componentIds;
+
+  if (!componentIds || componentIds.length < 2) {
+    return { error: { code: 'INVALID_PARAMS', message: 'At least 2 component IDs are required' } };
+  }
+
+  // Get all component nodes
+  var components = [];
+  for (var i = 0; i < componentIds.length; i++) {
+    var node = await figma.getNodeByIdAsync(componentIds[i]);
+    if (!node) {
+      return { error: { code: 'NODE_NOT_FOUND', message: 'Component ' + componentIds[i] + ' not found' } };
+    }
+    if (node.type !== 'COMPONENT') {
+      return { error: { code: 'INVALID_NODE_TYPE', message: 'Node ' + componentIds[i] + ' is not a component (type: ' + node.type + ')' } };
+    }
+    components.push(node);
+  }
+
+  // Combine as variants
+  var componentSet = figma.combineAsVariants(components, components[0].parent);
+
+  return {
+    success: true,
+    componentSet: {
+      id: componentSet.id,
+      name: componentSet.name,
+      type: componentSet.type,
+      variantCount: componentSet.children.length,
+      variantGroupProperties: componentSet.variantGroupProperties ? clone(componentSet.variantGroupProperties) : {}
+    }
   };
 }
