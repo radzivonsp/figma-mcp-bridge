@@ -10,11 +10,34 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { FigmaBridge } from './websocket.js';
 import { createServer } from './server.js';
+import { execSync } from 'child_process';
 
 const PORT = parseInt(process.env.FIGMA_BRIDGE_PORT || '3055', 10);
 
+function killStaleProcess(port) {
+  try {
+    const output = execSync(`lsof -ti :${port}`, { encoding: 'utf8' }).trim();
+    if (output) {
+      const pids = output.split('\n').filter(p => p && p !== String(process.pid));
+      for (const pid of pids) {
+        try {
+          process.kill(parseInt(pid, 10), 'SIGTERM');
+          console.error(`[FigmaMCP] Killed stale process ${pid} on port ${port}`);
+        } catch (e) { /* already dead */ }
+      }
+      // Brief wait for port to be released
+      if (pids.length > 0) {
+        execSync('sleep 0.5');
+      }
+    }
+  } catch (e) { /* no process on port — good */ }
+}
+
 async function main() {
   console.error('[FigmaMCP] Starting Figma MCP Bridge...');
+
+  // Kill any stale process holding our configured port
+  killStaleProcess(PORT);
 
   // Create and start WebSocket bridge
   const bridge = new FigmaBridge(PORT);

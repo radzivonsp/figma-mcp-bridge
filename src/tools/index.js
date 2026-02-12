@@ -105,10 +105,10 @@ const colorSchema = z.union([
     color: z.string().describe('Hex color (e.g., "#FF0000" or "#FF0000FF" with alpha)')
   }),
   z.object({
-    r: z.number().min(0).max(1).describe('Red (0-1)'),
-    g: z.number().min(0).max(1).describe('Green (0-1)'),
-    b: z.number().min(0).max(1).describe('Blue (0-1)'),
-    a: z.number().min(0).max(1).optional().describe('Alpha (0-1, optional)')
+    r: z.coerce.number().min(0).max(1).describe('Red (0-1)'),
+    g: z.coerce.number().min(0).max(1).describe('Green (0-1)'),
+    b: z.coerce.number().min(0).max(1).describe('Blue (0-1)'),
+    a: z.coerce.number().min(0).max(1).optional().describe('Alpha (0-1, optional)')
   }),
   z.array(z.any()).describe('Full Figma fills array (pass empty array [] to remove all fills)')
 ]);
@@ -193,7 +193,7 @@ export function registerTools(server, bridge) {
     {
       nodeId: z.string().describe('The node ID to modify'),
       strokes: colorSchema.describe('Stroke color - use { color: "#RRGGBB" } for simple colors'),
-      strokeWeight: z.number().optional().describe('Stroke weight in pixels')
+      strokeWeight: z.coerce.number().optional().describe('Stroke weight in pixels')
     },
     async (args) => handleSetStrokes(bridge, args)
   );
@@ -203,10 +203,10 @@ export function registerTools(server, bridge) {
     'figma_create_rectangle',
     'Create a rectangle.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels'),
-      height: z.number().optional().default(100).describe('Height in pixels'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(100).describe('Width in pixels'),
+      height: z.coerce.number().optional().default(100).describe('Height in pixels'),
       name: z.string().optional().default('Rectangle').describe('Node name'),
       fills: colorSchema.optional().describe('Fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
@@ -233,8 +233,8 @@ export function registerTools(server, bridge) {
       nodeIds: z.array(z.string()).describe('Array of node IDs to clone'),
       parentId: z.string().optional().describe('Parent node ID for clones (optional)'),
       offset: z.object({
-        x: z.number().optional().default(20).describe('X offset from original'),
-        y: z.number().optional().default(20).describe('Y offset from original')
+        x: z.coerce.number().optional().default(20).describe('X offset from original'),
+        y: z.coerce.number().optional().default(20).describe('Y offset from original')
       }).optional().describe('Position offset for cloned nodes')
     },
     async (args) => handleCloneNodes(bridge, args)
@@ -260,8 +260,8 @@ export function registerTools(server, bridge) {
     'Move nodes. Use relative=true for offset.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to move'),
-      x: z.number().optional().describe('X position (absolute) or offset (if relative=true)'),
-      y: z.number().optional().describe('Y position (absolute) or offset (if relative=true)'),
+      x: z.coerce.number().optional().describe('X position (absolute) or offset (if relative=true)'),
+      y: z.coerce.number().optional().describe('Y position (absolute) or offset (if relative=true)'),
       relative: z.boolean().optional().default(false).describe('If true, x/y are offsets from current position')
     },
     async (args) => handleMoveNodes(bridge, args)
@@ -273,8 +273,8 @@ export function registerTools(server, bridge) {
     'Resize one or more nodes. At least one dimension (width or height) must be provided.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to resize'),
-      width: z.number().optional().describe('New width in pixels'),
-      height: z.number().optional().describe('New height in pixels')
+      width: z.coerce.number().optional().describe('New width in pixels'),
+      height: z.coerce.number().optional().describe('New height in pixels')
     },
     async (args) => handleResizeNodes(bridge, args)
   );
@@ -285,7 +285,7 @@ export function registerTools(server, bridge) {
     'Set opacity (0-1).',
     {
       nodeId: z.string().describe('The node ID to modify'),
-      opacity: z.number().min(0).max(1).describe('Opacity value from 0 (transparent) to 1 (opaque)')
+      opacity: z.coerce.number().min(0).max(1).describe('Opacity value from 0 (transparent) to 1 (opaque)')
     },
     async (args) => handleSetOpacity(bridge, args)
   );
@@ -296,11 +296,11 @@ export function registerTools(server, bridge) {
     'Set corner radius. Use individual values for asymmetric.',
     {
       nodeId: z.string().describe('The node ID to modify'),
-      radius: z.number().optional().describe('Uniform corner radius for all corners'),
-      topLeft: z.number().optional().describe('Top-left corner radius'),
-      topRight: z.number().optional().describe('Top-right corner radius'),
-      bottomLeft: z.number().optional().describe('Bottom-left corner radius'),
-      bottomRight: z.number().optional().describe('Bottom-right corner radius')
+      radius: z.coerce.number().optional().describe('Uniform corner radius for all corners'),
+      topLeft: z.coerce.number().optional().describe('Top-left corner radius'),
+      topRight: z.coerce.number().optional().describe('Top-right corner radius'),
+      bottomLeft: z.coerce.number().optional().describe('Bottom-left corner radius'),
+      bottomRight: z.coerce.number().optional().describe('Bottom-right corner radius')
     },
     async (args) => handleSetCornerRadius(bridge, args)
   );
@@ -335,10 +335,10 @@ export function registerTools(server, bridge) {
     'figma_create_frame',
     'Create a frame.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels'),
-      height: z.number().optional().default(100).describe('Height in pixels'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(100).describe('Width in pixels'),
+      height: z.coerce.number().optional().default(100).describe('Height in pixels'),
       name: z.string().optional().default('Frame').describe('Frame name'),
       fills: colorSchema.optional().describe('Fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
@@ -351,10 +351,10 @@ export function registerTools(server, bridge) {
     'figma_create_text',
     'Create a text node.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       text: z.string().optional().default('Text').describe('The text content'),
-      fontSize: z.number().optional().default(16).describe('Font size in pixels'),
+      fontSize: z.coerce.number().optional().default(16).describe('Font size in pixels'),
       fontFamily: z.string().optional().default('Inter').describe('Font family name'),
       fontStyle: z.string().optional().default('Regular').describe('Font style (Regular, Bold, etc.)'),
       fills: colorSchema.optional().describe('Text color'),
@@ -399,7 +399,7 @@ export function registerTools(server, bridge) {
     {
       nodeId: z.string().describe('The node ID to export'),
       format: z.enum(['PNG', 'SVG', 'JPG', 'PDF']).optional().default('PNG').describe('Export format'),
-      scale: z.number().optional().default(1).describe('Export scale (1 = 100%, 2 = 200%, etc.)')
+      scale: z.coerce.number().optional().default(1).describe('Export scale (1 = 100%, 2 = 200%, etc.)')
     },
     async (args) => handleExportNode(bridge, args)
   );
@@ -413,17 +413,17 @@ export function registerTools(server, bridge) {
     'figma_create_ellipse',
     'Create ellipse. Use arcData for arcs/rings.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels (diameter for circle)'),
-      height: z.number().optional().default(100).describe('Height in pixels (same as width for circle)'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(100).describe('Width in pixels (diameter for circle)'),
+      height: z.coerce.number().optional().default(100).describe('Height in pixels (same as width for circle)'),
       name: z.string().optional().default('Ellipse').describe('Node name'),
       fills: colorSchema.optional().describe('Fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)'),
       arcData: z.object({
-        startingAngle: z.number().min(0).max(6.28319).optional().describe('Starting angle in radians (0 = 3 o\'clock)'),
-        endingAngle: z.number().min(0).max(6.28319).optional().describe('Ending angle in radians (2*PI = full circle)'),
-        innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio (0 = solid, 0.5 = 50% hole)')
+        startingAngle: z.coerce.number().min(0).max(6.28319).optional().describe('Starting angle in radians (0 = 3 o\'clock)'),
+        endingAngle: z.coerce.number().min(0).max(6.28319).optional().describe('Ending angle in radians (2*PI = full circle)'),
+        innerRadius: z.coerce.number().min(0).max(1).optional().describe('Inner radius ratio (0 = solid, 0.5 = 50% hole)')
       }).optional().describe('Arc data for partial ellipses or rings')
     },
     async (args) => handleCreateEllipse(bridge, args)
@@ -440,17 +440,17 @@ export function registerTools(server, bridge) {
           type: z.enum(['DROP_SHADOW', 'INNER_SHADOW']).describe('Shadow type'),
           color: colorSchema.optional().describe('Shadow color'),
           offset: z.object({
-            x: z.number().describe('Horizontal offset'),
-            y: z.number().describe('Vertical offset')
+            x: z.coerce.number().describe('Horizontal offset'),
+            y: z.coerce.number().describe('Vertical offset')
           }).optional().describe('Shadow offset'),
-          radius: z.number().min(0).optional().describe('Blur radius'),
-          spread: z.number().optional().describe('Spread radius'),
+          radius: z.coerce.number().min(0).optional().describe('Blur radius'),
+          spread: z.coerce.number().optional().describe('Spread radius'),
           visible: z.boolean().optional().describe('Whether effect is visible'),
           blendMode: z.string().optional().describe('Blend mode')
         }),
         z.object({
           type: z.enum(['LAYER_BLUR', 'BACKGROUND_BLUR']).describe('Blur type'),
-          radius: z.number().min(0).describe('Blur radius'),
+          radius: z.coerce.number().min(0).describe('Blur radius'),
           visible: z.boolean().optional().describe('Whether effect is visible')
         })
       ])).describe('Array of effects to apply')
@@ -469,12 +469,12 @@ export function registerTools(server, bridge) {
       counterAxisSizingMode: z.enum(['FIXED', 'AUTO']).optional().describe('How the frame sizes along the counter axis'),
       primaryAxisAlignItems: z.enum(['MIN', 'CENTER', 'MAX', 'SPACE_BETWEEN']).optional().describe('Alignment of children along primary axis'),
       counterAxisAlignItems: z.enum(['MIN', 'CENTER', 'MAX', 'BASELINE']).optional().describe('Alignment of children along counter axis'),
-      paddingTop: z.number().min(0).optional().describe('Top padding in pixels'),
-      paddingRight: z.number().min(0).optional().describe('Right padding in pixels'),
-      paddingBottom: z.number().min(0).optional().describe('Bottom padding in pixels'),
-      paddingLeft: z.number().min(0).optional().describe('Left padding in pixels'),
-      itemSpacing: z.number().min(0).optional().describe('Space between items in pixels'),
-      counterAxisSpacing: z.number().min(0).optional().describe('Space between rows when wrapped'),
+      paddingTop: z.coerce.number().min(0).optional().describe('Top padding in pixels'),
+      paddingRight: z.coerce.number().min(0).optional().describe('Right padding in pixels'),
+      paddingBottom: z.coerce.number().min(0).optional().describe('Bottom padding in pixels'),
+      paddingLeft: z.coerce.number().min(0).optional().describe('Left padding in pixels'),
+      itemSpacing: z.coerce.number().min(0).optional().describe('Space between items in pixels'),
+      counterAxisSpacing: z.coerce.number().min(0).optional().describe('Space between rows when wrapped'),
       layoutWrap: z.enum(['NO_WRAP', 'WRAP']).optional().describe('Whether to wrap items to new rows/columns')
     },
     async (args) => handleSetAutoLayout(bridge, args)
@@ -508,10 +508,10 @@ export function registerTools(server, bridge) {
     'Create a component.',
     {
       fromNodeId: z.string().optional().describe('Convert an existing node to a component'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels'),
-      height: z.number().optional().default(100).describe('Height in pixels'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(100).describe('Width in pixels'),
+      height: z.coerce.number().optional().default(100).describe('Height in pixels'),
       name: z.string().optional().default('Component').describe('Component name'),
       fills: colorSchema.optional().describe('Fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)'),
@@ -526,8 +526,8 @@ export function registerTools(server, bridge) {
     'Create a component instance.',
     {
       componentId: z.string().describe('The component ID to create an instance of'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)'),
       name: z.string().optional().describe('Instance name (defaults to component name)')
     },
@@ -560,7 +560,7 @@ export function registerTools(server, bridge) {
       type: z.enum(['COLOR', 'FLOAT', 'STRING', 'BOOLEAN', 'ALL']).optional().default('ALL').describe('Filter by variable type'),
       collectionName: z.string().optional().describe('Filter by collection name (exact match or partial)'),
       compact: z.boolean().optional().default(true).describe('Return minimal data (id, name, hex/value only). Set false for full metadata.'),
-      limit: z.number().optional().default(50).describe('Maximum number of variables to return')
+      limit: z.coerce.number().optional().default(50).describe('Maximum number of variables to return')
     },
     async (args) => handleSearchVariables(bridge, args)
   );
@@ -578,9 +578,9 @@ export function registerTools(server, bridge) {
       nameContains: z.string().optional().describe('Case-insensitive substring match. Example: "color scale" matches "Color Scale Section"'),
       namePattern: z.string().optional().describe('Glob pattern with wildcards. Examples: "*button*", "Header/*"'),
       types: z.array(z.string()).optional().describe('Filter by node types: FRAME, TEXT, SECTION, COMPONENT, INSTANCE, GROUP, etc.'),
-      maxDepth: z.number().optional().default(-1).describe('How deep to search (-1 = unlimited, 1 = immediate children only)'),
+      maxDepth: z.coerce.number().optional().default(-1).describe('How deep to search (-1 = unlimited, 1 = immediate children only)'),
       compact: z.boolean().optional().default(true).describe('Return minimal data (id, name, type, parentId, childCount)'),
-      limit: z.number().optional().default(50).describe('Maximum number of results')
+      limit: z.coerce.number().optional().default(50).describe('Maximum number of results')
     },
     async (args) => handleSearchNodes(bridge, args)
   );
@@ -594,7 +594,7 @@ export function registerTools(server, bridge) {
       namePattern: z.string().optional().describe('Glob pattern with wildcards'),
       includeVariants: z.boolean().optional().default(false).describe('Include individual variants from component sets'),
       compact: z.boolean().optional().default(true).describe('Return minimal data'),
-      limit: z.number().optional().default(50).describe('Maximum number of results')
+      limit: z.coerce.number().optional().default(50).describe('Maximum number of results')
     },
     async (args) => handleSearchComponents(bridge, args)
   );
@@ -607,7 +607,7 @@ export function registerTools(server, bridge) {
       nameContains: z.string().optional().describe('Case-insensitive substring match'),
       type: z.enum(['PAINT', 'TEXT', 'EFFECT', 'GRID', 'ALL']).optional().default('ALL').describe('Filter by style type'),
       compact: z.boolean().optional().default(true).describe('Return minimal data'),
-      limit: z.number().optional().default(50).describe('Maximum number of results')
+      limit: z.coerce.number().optional().default(50).describe('Maximum number of results')
     },
     async (args) => handleSearchStyles(bridge, args)
   );
@@ -631,19 +631,19 @@ export function registerTools(server, bridge) {
       variableId: z.string().describe('The variable ID to set or bind'),
       modeId: z.string().optional().describe('Mode ID to set value for (required when setting value)'),
       value: z.union([
-        z.number(),
+        z.coerce.number(),
         z.string(),
         z.boolean(),
         z.object({
-          r: z.number().min(0).max(1).describe('Red (0-1)'),
-          g: z.number().min(0).max(1).describe('Green (0-1)'),
-          b: z.number().min(0).max(1).describe('Blue (0-1)'),
-          a: z.number().min(0).max(1).optional().describe('Alpha (0-1)')
+          r: z.coerce.number().min(0).max(1).describe('Red (0-1)'),
+          g: z.coerce.number().min(0).max(1).describe('Green (0-1)'),
+          b: z.coerce.number().min(0).max(1).describe('Blue (0-1)'),
+          a: z.coerce.number().min(0).max(1).optional().describe('Alpha (0-1)')
         })
       ]).optional().describe('The value to set (number, string, boolean, or color object)'),
       nodeId: z.string().optional().describe('Node ID to bind variable to (for binding operation)'),
       field: z.string().optional().describe('Node field to bind to (e.g., "opacity", "cornerRadius", "fills", "strokes")'),
-      paintIndex: z.number().optional().default(0).describe('Paint array index when binding to fills or strokes')
+      paintIndex: z.coerce.number().optional().default(0).describe('Paint array index when binding to fills or strokes')
     },
     async (args) => handleSetVariable(bridge, args)
   );
@@ -653,12 +653,12 @@ export function registerTools(server, bridge) {
     'figma_create_line',
     'Create a line.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      length: z.number().optional().default(100).describe('Line length in pixels'),
-      rotation: z.number().optional().default(0).describe('Line rotation in degrees (0 = horizontal)'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      length: z.coerce.number().optional().default(100).describe('Line length in pixels'),
+      rotation: z.coerce.number().optional().default(0).describe('Line rotation in degrees (0 = horizontal)'),
       name: z.string().optional().default('Line').describe('Node name'),
-      strokeWeight: z.number().optional().default(1).describe('Stroke weight in pixels'),
+      strokeWeight: z.coerce.number().optional().default(1).describe('Stroke weight in pixels'),
       strokes: colorSchema.optional().describe('Stroke color'),
       strokeCap: z.enum(['NONE', 'ROUND', 'SQUARE', 'ARROW_LINES', 'ARROW_EQUILATERAL']).optional().default('NONE').describe('Stroke cap style (ARROW_LINES/ARROW_EQUILATERAL for arrows)'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
@@ -687,17 +687,17 @@ export function registerTools(server, bridge) {
     'figma_create_polygon',
     'Create a polygon (triangle, pentagon, hexagon, etc.) or star shape. Set innerRadius (0-1) to create a star with spiky points.',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(100).describe('Width in pixels'),
-      height: z.number().optional().default(100).describe('Height in pixels'),
-      pointCount: z.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
-      innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(100).describe('Width in pixels'),
+      height: z.coerce.number().optional().default(100).describe('Height in pixels'),
+      pointCount: z.coerce.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
+      innerRadius: z.coerce.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
       name: z.string().optional().describe('Node name'),
       fills: colorSchema.optional().describe('Fill color'),
       strokes: colorSchema.optional().describe('Stroke color'),
-      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
-      cornerRadius: z.number().optional().describe('Corner radius for vertices'),
+      strokeWeight: z.coerce.number().optional().describe('Stroke weight in pixels'),
+      cornerRadius: z.coerce.number().optional().describe('Corner radius for vertices'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreatePolygon(bridge, args)
@@ -761,7 +761,7 @@ export function registerTools(server, bridge) {
     {
       nodeId: z.string().describe('The child node ID to modify'),
       layoutAlign: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH', 'INHERIT']).optional().describe('Counter-axis alignment: STRETCH to fill width/height'),
-      layoutGrow: z.number().min(0).max(1).optional().describe('Primary-axis growth: 0 = fixed size, 1 = fill available space'),
+      layoutGrow: z.coerce.number().min(0).max(1).optional().describe('Primary-axis growth: 0 = fixed size, 1 = fill available space'),
       layoutPositioning: z.enum(['AUTO', 'ABSOLUTE']).optional().describe('AUTO = follow auto-layout, ABSOLUTE = manually positioned')
     },
     async (args) => handleSetLayoutAlign(bridge, args)
@@ -772,14 +772,14 @@ export function registerTools(server, bridge) {
     'figma_create_vector',
     'Create a custom vector shape using SVG-style path data. Supports M (move), L (line), Q (quadratic curve), C (cubic bezier), Z (close).',
     {
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       data: z.string().describe('SVG path string (e.g., "M 0 100 L 100 100 L 50 0 Z" for triangle)'),
       windingRule: z.enum(['NONZERO', 'EVENODD', 'NONE']).optional().default('NONZERO').describe('Fill rule: NONZERO (solid), EVENODD (holes), NONE (outline only)'),
       name: z.string().optional().default('Vector').describe('Node name'),
       fills: colorSchema.optional().describe('Fill color'),
       strokes: colorSchema.optional().describe('Stroke color'),
-      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
+      strokeWeight: z.coerce.number().optional().describe('Stroke weight in pixels'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreateVector(bridge, args)
@@ -806,7 +806,7 @@ export function registerTools(server, bridge) {
       position: z.union([
         z.literal('front'),
         z.literal('back'),
-        z.number()
+        z.coerce.number()
       ]).describe('Position: "front" (top), "back" (bottom), or index number')
     },
     async (args) => handleReorderNode(bridge, args)
@@ -822,19 +822,19 @@ export function registerTools(server, bridge) {
     'Set text font properties.',
     {
       nodeId: z.string().describe('Text node ID'),
-      fontSize: z.number().optional().describe('Font size in pixels'),
+      fontSize: z.coerce.number().optional().describe('Font size in pixels'),
       fontFamily: z.string().optional().describe('Font family (e.g., "Inter")'),
       fontStyle: z.string().optional().describe('Font style (e.g., "Bold", "Regular")'),
       textCase: z.enum(['ORIGINAL', 'UPPER', 'LOWER', 'TITLE']).optional().describe('Text case transformation'),
       textDecoration: z.enum(['NONE', 'UNDERLINE', 'STRIKETHROUGH']).optional().describe('Text decoration'),
       lineHeight: z.union([
         z.object({ unit: z.literal('AUTO') }),
-        z.object({ unit: z.literal('PIXELS'), value: z.number() }),
-        z.object({ unit: z.literal('PERCENT'), value: z.number() })
+        z.object({ unit: z.literal('PIXELS'), value: z.coerce.number() }),
+        z.object({ unit: z.literal('PERCENT'), value: z.coerce.number() })
       ]).optional().describe('Line height (AUTO, or PIXELS/PERCENT with value)'),
       letterSpacing: z.union([
-        z.object({ unit: z.literal('PIXELS'), value: z.number() }),
-        z.object({ unit: z.literal('PERCENT'), value: z.number() })
+        z.object({ unit: z.literal('PIXELS'), value: z.coerce.number() }),
+        z.object({ unit: z.literal('PERCENT'), value: z.coerce.number() })
       ]).optional().describe('Letter spacing (PIXELS or PERCENT with value)'),
       textAlignHorizontal: z.enum(['LEFT', 'CENTER', 'RIGHT', 'JUSTIFIED']).optional().describe('Horizontal text alignment'),
       textAlignVertical: z.enum(['TOP', 'CENTER', 'BOTTOM']).optional().describe('Vertical text alignment')
@@ -862,15 +862,15 @@ export function registerTools(server, bridge) {
       name: z.string().describe('Style name (use "/" for folders)'),
       fontFamily: z.string().optional().default('Inter').describe('Font family'),
       fontStyle: z.string().optional().default('Regular').describe('Font style (Regular, Bold, etc.)'),
-      fontSize: z.number().optional().default(16).describe('Font size in pixels'),
+      fontSize: z.coerce.number().optional().default(16).describe('Font size in pixels'),
       lineHeight: z.union([
         z.object({ unit: z.literal('AUTO') }),
-        z.object({ unit: z.literal('PIXELS'), value: z.number() }),
-        z.object({ unit: z.literal('PERCENT'), value: z.number() })
+        z.object({ unit: z.literal('PIXELS'), value: z.coerce.number() }),
+        z.object({ unit: z.literal('PERCENT'), value: z.coerce.number() })
       ]).optional().describe('Line height'),
       letterSpacing: z.union([
-        z.object({ unit: z.literal('PIXELS'), value: z.number() }),
-        z.object({ unit: z.literal('PERCENT'), value: z.number() })
+        z.object({ unit: z.literal('PIXELS'), value: z.coerce.number() }),
+        z.object({ unit: z.literal('PERCENT'), value: z.coerce.number() })
       ]).optional().describe('Letter spacing'),
       textCase: z.enum(['ORIGINAL', 'UPPER', 'LOWER', 'TITLE']).optional().describe('Text case'),
       textDecoration: z.enum(['NONE', 'UNDERLINE', 'STRIKETHROUGH']).optional().describe('Text decoration'),
@@ -900,9 +900,9 @@ export function registerTools(server, bridge) {
       type: z.enum(['COLOR', 'FLOAT', 'STRING', 'BOOLEAN']).describe('Variable type'),
       value: z.union([
         z.string(),
-        z.number(),
+        z.coerce.number(),
         z.boolean(),
-        z.object({ r: z.number(), g: z.number(), b: z.number(), a: z.number().optional() }),
+        z.object({ r: z.coerce.number(), g: z.coerce.number(), b: z.coerce.number(), a: z.coerce.number().optional() }),
         z.object({ color: z.string() })
       ]).optional().describe('Initial value for default mode'),
       aliasOf: z.string().optional().describe('Variable ID to alias (instead of direct value)'),
@@ -1001,7 +1001,7 @@ export function registerTools(server, bridge) {
     {
       nodeId: z.string().describe('The node ID to unbind from'),
       field: z.string().describe('The field to unbind (fills, strokes, opacity, cornerRadius, etc.)'),
-      paintIndex: z.number().optional().default(0).describe('Paint array index for fills/strokes')
+      paintIndex: z.coerce.number().optional().default(0).describe('Paint array index for fills/strokes')
     },
     async (args) => handleUnbindVariable(bridge, args)
   );
@@ -1016,7 +1016,7 @@ export function registerTools(server, bridge) {
     'Create a new page in the Figma document. Returns the created page.',
     {
       name: z.string().describe('Name for the new page'),
-      index: z.number().optional().describe('Position in the page list (0 = first). Defaults to end.')
+      index: z.coerce.number().optional().describe('Position in the page list (0 = first). Defaults to end.')
     },
     async (args) => handleCreatePage(bridge, args)
   );
@@ -1048,7 +1048,7 @@ export function registerTools(server, bridge) {
     'Change the position of a page in the page list.',
     {
       pageId: z.string().describe('The page ID to reorder'),
-      index: z.number().describe('New position in the page list (0 = first)')
+      index: z.coerce.number().describe('New position in the page list (0 = first)')
     },
     async (args) => handleReorderPage(bridge, args)
   );
@@ -1064,7 +1064,7 @@ export function registerTools(server, bridge) {
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to move'),
       newParentId: z.string().describe('The new parent node ID (must be a frame, group, or page)'),
-      index: z.number().optional().describe('Position within the new parent (0 = bottom/back). Defaults to top/front.')
+      index: z.coerce.number().optional().describe('Position within the new parent (0 = bottom/back). Defaults to top/front.')
     },
     async (args) => handleReparentNodes(bridge, args)
   );
@@ -1076,8 +1076,8 @@ export function registerTools(server, bridge) {
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to move'),
       targetPageId: z.string().describe('The destination page ID'),
-      x: z.number().optional().describe('X position on the target page'),
-      y: z.number().optional().describe('Y position on the target page')
+      x: z.coerce.number().optional().describe('X position on the target page'),
+      y: z.coerce.number().optional().describe('Y position on the target page')
     },
     async (args) => handleMoveToPage(bridge, args)
   );
@@ -1132,7 +1132,7 @@ export function registerTools(server, bridge) {
     'Set the rotation (in degrees) of one or more nodes. Rotation is around the center point.',
     {
       nodeIds: z.array(z.string()).describe('Array of node IDs to rotate'),
-      rotation: z.number().min(-180).max(180).describe('Rotation in degrees (-180 to 180)')
+      rotation: z.coerce.number().min(-180).max(180).describe('Rotation in degrees (-180 to 180)')
     },
     async (args) => handleSetRotation(bridge, args)
   );
@@ -1155,18 +1155,18 @@ export function registerTools(server, bridge) {
       nodeId: z.string().describe('The frame node ID to set grids on'),
       layoutGrids: z.array(z.object({
         pattern: z.enum(['COLUMNS', 'ROWS', 'GRID']).describe('Grid pattern type'),
-        sectionSize: z.number().optional().describe('Size of each column/row/cell in pixels'),
+        sectionSize: z.coerce.number().optional().describe('Size of each column/row/cell in pixels'),
         visible: z.boolean().optional().default(true).describe('Whether grid is visible'),
         color: z.object({
-          r: z.number().min(0).max(1).describe('Red (0-1)'),
-          g: z.number().min(0).max(1).describe('Green (0-1)'),
-          b: z.number().min(0).max(1).describe('Blue (0-1)'),
-          a: z.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
+          r: z.coerce.number().min(0).max(1).describe('Red (0-1)'),
+          g: z.coerce.number().min(0).max(1).describe('Green (0-1)'),
+          b: z.coerce.number().min(0).max(1).describe('Blue (0-1)'),
+          a: z.coerce.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
         }).optional().describe('Grid color with alpha'),
         alignment: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH']).optional().describe('Column/row alignment (for COLUMNS/ROWS pattern)'),
-        gutterSize: z.number().optional().describe('Gutter size between columns/rows in pixels'),
-        offset: z.number().optional().describe('Offset from edge in pixels'),
-        count: z.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
+        gutterSize: z.coerce.number().optional().describe('Gutter size between columns/rows in pixels'),
+        offset: z.coerce.number().optional().describe('Offset from edge in pixels'),
+        count: z.coerce.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
       })).describe('Array of layout grid configurations')
     },
     async (args) => handleSetLayoutGrids(bridge, args)
@@ -1182,8 +1182,8 @@ export function registerTools(server, bridge) {
     'Parse an SVG string and create a Figma node tree from it. Great for importing icons, illustrations, and vector graphics.',
     {
       svg: z.string().describe('SVG markup string (e.g., "<svg>...</svg>")'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       name: z.string().optional().describe('Name for the created node'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
@@ -1196,10 +1196,10 @@ export function registerTools(server, bridge) {
     'Create a section node for organizing frames and content. Sections are used in both Figma and FigJam for grouping related items.',
     {
       name: z.string().optional().default('Section').describe('Section name'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
-      width: z.number().optional().default(400).describe('Width in pixels'),
-      height: z.number().optional().default(300).describe('Height in pixels'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
+      width: z.coerce.number().optional().default(400).describe('Width in pixels'),
+      height: z.coerce.number().optional().default(300).describe('Height in pixels'),
       fills: colorSchema.optional().describe('Section fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
@@ -1276,8 +1276,8 @@ export function registerTools(server, bridge) {
         'GRAY', 'ORANGE', 'GREEN', 'BLUE', 'VIOLET', 'PINK',
         'LIGHT_GRAY', 'YELLOW', 'TEAL', 'RED', 'LIGHT_GREEN', 'LIGHT_BLUE'
       ]).optional().default('YELLOW').describe('Sticky note color'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreateSticky(bridge, args)
@@ -1304,10 +1304,10 @@ export function registerTools(server, bridge) {
     'figma_create_table',
     'Create a table in FigJam with the specified number of rows and columns.',
     {
-      rows: z.number().min(1).max(100).describe('Number of rows'),
-      columns: z.number().min(1).max(100).describe('Number of columns'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      rows: z.coerce.number().min(1).max(100).describe('Number of rows'),
+      columns: z.coerce.number().min(1).max(100).describe('Number of columns'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreateTable(bridge, args)
@@ -1329,8 +1329,8 @@ export function registerTools(server, bridge) {
         'SPEECH_BUBBLE', 'INTERNAL_STORAGE'
       ]).optional().default('ROUNDED_RECTANGLE').describe('Shape type for the container'),
       text: z.string().optional().default('').describe('Text content inside the shape'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       fills: colorSchema.optional().describe('Shape fill color'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
@@ -1347,8 +1347,8 @@ export function registerTools(server, bridge) {
         'TYPESCRIPT', 'CPP', 'RUBY', 'CSS', 'JAVASCRIPT', 'HTML', 'JSON',
         'GRAPHQL', 'PYTHON', 'GO', 'SQL', 'SWIFT', 'KOTLIN', 'RUST', 'BASH', 'PLAINTEXT', 'DART'
       ]).optional().default('PLAINTEXT').describe('Language for syntax highlighting'),
-      x: z.number().optional().default(0).describe('X position'),
-      y: z.number().optional().default(0).describe('Y position'),
+      x: z.coerce.number().optional().default(0).describe('X position'),
+      y: z.coerce.number().optional().default(0).describe('Y position'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreateCodeBlock(bridge, args)
