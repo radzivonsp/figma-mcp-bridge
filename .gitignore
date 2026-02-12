@@ -26,6 +26,4 @@ Thumbs.db
 .env.local
 
 # Build artifacts
-dist/
 build/
-*.mcpb

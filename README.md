@@ -46,7 +46,7 @@ claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
 
 **Claude Desktop (via `.mcpb` bundle)**
 
-Download the latest `figma-mcp-bridge-x.x.x.mcpb` from [Releases](https://github.com/radzivonsp/figma-mcp-bridge/releases) and double-click to install. Or configure manually:
+Download [`figma-mcp-bridge.mcpb`](dist/figma-mcp-bridge.mcpb) and double-click to install. Or configure manually:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
@@ -320,7 +320,7 @@ All tools have full parameter descriptions built-in — Claude discovers them au
 | Install method | Update mechanism |
 |----------------|------------------|
 | `claude plugin add github:...` | Run `/plugin marketplace update` in Claude Code, or enable auto-update |
-| `.mcpb` bundle (Desktop) | Download new `.mcpb` from Releases and reinstall |
+| `.mcpb` bundle (Desktop) | Download updated `.mcpb` from repo and reinstall |
 | `npx github:...` (Desktop JSON) | Automatically fetches latest on each launch |
 | From source | `git pull && npm install` |
 
@@ -335,18 +335,15 @@ After updating skills, tools, or server code:
 # 2. Validate the mcpb manifest
 npm run pack:validate
 
-# 3. Build the .mcpb bundle for Claude Desktop
+# 3. Rebuild the .mcpb bundle
 npm run pack:mcpb
-# → outputs dist/figma-mcp-bridge-x.x.x.mcpb
 
-# 4. Commit, tag, and push
+# 4. Commit and push (the .mcpb is tracked in git)
 git add -A && git commit -m "Release vX.X.X"
-git tag vX.X.X && git push --tags
-
-# 5. Create a GitHub Release and attach the .mcpb file
+git push
 ```
 
-Claude Code plugin users get the update automatically (via git). Desktop `.mcpb` users download the new bundle from Releases.
+Claude Code plugin users get the update automatically (via git). Desktop users download the updated `dist/figma-mcp-bridge.mcpb` from the repo.
 
 ---
 
