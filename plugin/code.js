@@ -3284,8 +3284,8 @@ function serializeNode(node, depth) {
   }
   if (node.type === 'INSTANCE') {
     base.isInstance = true;
-    base.componentProperties = clone(node.componentProperties);
-    base.mainComponentId = node.mainComponent ? node.mainComponent.id : null;
+    try { base.componentProperties = clone(node.componentProperties); } catch (e) {}
+    try { base.mainComponentId = node.mainComponent ? node.mainComponent.id : null; } catch (e) { base.mainComponentId = null; }
   }
 
   if ('children' in node) {
