@@ -1,5 +1,5 @@
 {
-  "name": "@magic-spells/figma-mcp-bridge",
+  "name": "@radzivonsp/figma-mcp-bridge",
   "version": "0.1.2",
   "description": "MCP server enabling Claude to read and manipulate Figma documents via WebSocket bridge",
   "type": "module",
@@ -21,15 +21,18 @@
     "design"
   ],
   "author": "Cory Schulz @ Magic Spells",
+  "contributors": [
+    "Radzivon Obukh <https://github.com/radzivonsp>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/magic-spells/figma-mcp-bridge.git"
+    "url": "git+https://github.com/radzivonsp/figma-mcp-bridge.git"
   },
   "bugs": {
-    "url": "https://github.com/magic-spells/figma-mcp-bridge/issues"
+    "url": "https://github.com/radzivonsp/figma-mcp-bridge/issues"
   },
-  "homepage": "https://github.com/magic-spells/figma-mcp-bridge#readme",
+  "homepage": "https://github.com/radzivonsp/figma-mcp-bridge#readme",
   "engines": {
     "node": ">=18.0.0"
   },
