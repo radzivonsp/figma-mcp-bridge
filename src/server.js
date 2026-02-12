@@ -8,9 +8,10 @@ import { registerTools } from './tools/index.js';
 /**
  * Create and configure the MCP server
  * @param {FigmaBridge} bridge - Figma bridge instance
+ * @param {Object} config - Configuration options (e.g. figmaPat)
  * @returns {McpServer} Configured MCP server
  */
-export function createServer(bridge) {
+export function createServer(bridge, config = {}) {
   const server = new McpServer({
     name: 'figma-mcp-bridge',
     version: '0.1.0',
@@ -67,7 +68,7 @@ figma_search_nodes({ parentId: "0:1", nameContains: "Button", types: ["FRAME", "
   });
 
   // Register all Figma tools
-  registerTools(server, bridge);
+  registerTools(server, bridge, config);
 
   return server;
 }

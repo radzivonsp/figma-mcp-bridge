@@ -52,8 +52,19 @@ async function main() {
     console.error('[FigmaMCP] Figma disconnected');
   });
 
+  // Config from environment
+  const config = {
+    figmaPat: process.env.FIGMA_PAT || null
+  };
+
+  if (config.figmaPat) {
+    console.error('[FigmaMCP] FIGMA_PAT configured - Comments API enabled');
+  } else {
+    console.error('[FigmaMCP] FIGMA_PAT not set - Comments API will be unavailable');
+  }
+
   // Create MCP server
-  const server = createServer(bridge);
+  const server = createServer(bridge, config);
 
   // Connect to stdio transport (Claude communication)
   const transport = new StdioServerTransport();

@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import { handleGetContext } from './context.js';
+import { handleGetComments, handlePostComment } from './comments.js';
 import { handleListPages } from './pages.js';
 import { handleGetNodes } from './nodes.js';
 import {
@@ -118,7 +119,7 @@ const colorSchema = z.union([
  * @param {McpServer} server - MCP Server instance
  * @param {FigmaBridge} bridge - Figma bridge instance
  */
-export function registerTools(server, bridge) {
+export function registerTools(server, bridge, config = {}) {
   // ============================================================
   // Server Info
   // ============================================================
@@ -1352,5 +1353,33 @@ export function registerTools(server, bridge) {
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
     },
     async (args) => handleCreateCodeBlock(bridge, args)
+  );
+
+  // ============================================================
+  // Comments Tools (Figma REST API)
+  // ============================================================
+
+  // figma_get_comments - Read comments from the current Figma file
+  server.tool(
+    'figma_get_comments',
+    'Read all comments on the current Figma file. Supports filtering by node and resolved status. Requires FIGMA_PAT environment variable.',
+    {
+      node_id: z.string().optional().describe('Filter to comments attached to this specific node ID'),
+      unresolved_only: z.boolean().optional().default(false).describe('Only return unresolved (open) comments'),
+      include_replies: z.boolean().optional().default(true).describe('Include threaded replies under each comment')
+    },
+    async (args) => handleGetComments(bridge, config, args)
+  );
+
+  // figma_post_comment - Post a comment or reply on the current Figma file
+  server.tool(
+    'figma_post_comment',
+    'Post a new comment on a node or reply to an existing comment thread. Requires FIGMA_PAT environment variable. Provide either node_id (new comment) or reply_to (reply to thread), not both.',
+    {
+      message: z.string().describe('The comment text (supports markdown)'),
+      node_id: z.string().optional().describe('Node ID to pin the comment to (for new top-level comments)'),
+      reply_to: z.string().optional().describe('Comment ID to reply to (for threaded replies)')
+    },
+    async (args) => handlePostComment(bridge, config, args)
   );
 }

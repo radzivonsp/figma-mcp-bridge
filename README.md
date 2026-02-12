@@ -13,7 +13,7 @@ MCP server that lets Claude read and manipulate Figma documents in real-time thr
 
 ## Features
 
-- **82 Figma operations** - Create shapes, modify styles, manage components, pages, variables, FigJam elements
+- **84 Figma operations** - Create shapes, modify styles, manage components, pages, variables, FigJam elements, comments
 - **Real-time bidirectional communication** - Changes appear instantly in Figma
 - **Token-optimized queries** - Efficient variable search and node traversal
 - **Design skills** - `/figma-design` and `/figjam-design` slash commands that teach Claude best practices
@@ -41,7 +41,11 @@ Pick one option:
 
 **Claude Code CLI (recommended)**
 ```bash
-claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
+claude mcp add figma-mcp-bridge -e FIGMA_PAT=figd_xxx -- npx -y github:radzivonsp/figma-mcp-bridge
+```
+Replace `figd_xxx` with your Figma Personal Access Token (see [Step 5](#step-5-optional-enable-comments-api)). If you don't need comments, omit the `-e` flag:
+```bash
+claude mcp add figma-mcp-bridge -- npx -y github:radzivonsp/figma-mcp-bridge
 ```
 
 **Claude Desktop (via `.mcpb` bundle)**
@@ -105,7 +109,33 @@ mkdir -p .claude/skills
 cp -r skills/figma-design skills/figjam-design .claude/skills/
 ```
 
-### Step 5 (optional): Auto-approve tools
+### Step 5 (optional): Enable Comments API
+
+Lets Claude read and reply to Figma comments. Create a token at **Figma > Settings > Security > Personal access tokens** with `file_comments:read` and `file_comments:write` scopes.
+
+**Claude Code CLI** — one command:
+```bash
+claude mcp add figma-mcp-bridge -e FIGMA_PAT=figd_xxx -- npx -y github:radzivonsp/figma-mcp-bridge
+```
+
+**Claude Desktop** — add `env` to your config:
+```json
+{
+  "mcpServers": {
+    "figma-mcp-bridge": {
+      "command": "npx",
+      "args": ["-y", "github:radzivonsp/figma-mcp-bridge"],
+      "env": {
+        "FIGMA_PAT": "figd_xxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+```
+
+Without `FIGMA_PAT`, all other tools work normally — only comment tools will return an error with setup instructions.
+
+### Step 6 (optional): Auto-approve tools
 
 Add to `.claude/settings.local.json` to skip permission prompts:
 ```json
@@ -116,7 +146,7 @@ Add to `.claude/settings.local.json` to skip permission prompts:
 }
 ```
 
-### Step 6: Start designing
+### Step 7: Start designing
 
 Type `/figma-design` then describe what you want — or just ask Claude directly:
 > "Create a login form with email and password fields"
@@ -128,6 +158,7 @@ Type `/figma-design` then describe what you want — or just ask Claude directly
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `FIGMA_BRIDGE_PORT` | `3055` | WebSocket server port (auto-increments up to 3070 if busy) |
+| `FIGMA_PAT` | — | Figma Personal Access Token for Comments API (scopes: `file_comments:read`, `file_comments:write`) |
 
 ---
 
@@ -159,7 +190,7 @@ See [Step 4](#step-4-optional-install-design-skills) for installation instructio
 
 ---
 
-## Commands (82 tools)
+## Commands (84 tools)
 
 All tools have full parameter descriptions built-in — Claude discovers them automatically via MCP. Below is a quick reference grouped by category.
 
@@ -289,6 +320,12 @@ All tools have full parameter descriptions built-in — Claude discovers them au
 | `figma_create_shape_with_text` | Flowchart shape (diamond, ellipse, etc.) |
 | `figma_create_code_block` | Code block with syntax highlighting |
 
+### Comments (requires `FIGMA_PAT`)
+| Tool | Description |
+|------|-------------|
+| `figma_get_comments` | Read all comments on the file (filter by node, resolved status) |
+| `figma_post_comment` | Post a new comment on a node or reply to a thread |
+
 ---
 
 ## Token Optimization
@@ -367,6 +404,9 @@ Commands have a 30s timeout. Try smaller export scales. Check the plugin is stil
 
 **Font errors?**
 Text operations require fonts to be installed on your system. The plugin loads fonts automatically but will fail if the font isn't available.
+
+**Comments not working?**
+Comment tools require `FIGMA_PAT` environment variable. Create a token at Figma > Settings > Security > Personal access tokens with `file_comments:read` and `file_comments:write` scopes. The plugin must also be connected (file key comes from the plugin handshake).
 
 ---
 

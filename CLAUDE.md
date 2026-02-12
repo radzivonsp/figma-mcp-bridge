@@ -23,11 +23,12 @@ src/
 ├── server.js          # MCP server setup (McpServer configuration)
 ├── websocket.js       # FigmaBridge class - WebSocket connection management
 └── tools/
-    ├── index.js       # Tool registration with Zod schemas (82 tools)
+    ├── index.js       # Tool registration with Zod schemas (84 tools)
     ├── context.js     # figma_get_context handler
     ├── pages.js       # figma_list_pages handler
     ├── nodes.js       # figma_get_nodes handler
-    └── mutations.js   # All mutation handlers
+    ├── mutations.js   # All mutation handlers
+    └── comments.js    # Comment handlers (Figma REST API, not plugin bridge)
 
 plugin/
 ├── manifest.json      # Figma plugin configuration
@@ -218,6 +219,18 @@ figma_search_styles({ nameContains: 'primary', type: 'PAINT' })
 13. **Reordering nodes** - Use `parent.appendChild(node)` for front, `parent.insertChild(0, node)` for back (children array is read-only)
 
 14. **`mainComponent` is async** - Use `getMainComponentAsync()` for instances (currently skipped in serialization)
+
+## Comments API
+
+The `figma_get_comments` and `figma_post_comment` tools use the Figma REST API directly (not the plugin bridge). They require a Personal Access Token:
+
+```bash
+FIGMA_PAT=figd_xxx node src/index.js
+```
+
+The token needs `file_comments:read` and `file_comments:write` scopes. Created at Figma > Settings > Security > Personal access tokens.
+
+The file key is obtained automatically from the plugin handshake (`bridge.getDocumentInfo().fileId`).
 
 ## Running the Server
 
