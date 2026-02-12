@@ -78,6 +78,7 @@ import {
   handleMoveToPage,
   // Instance commands
   handleSwapInstance,
+  handleSetProperties,
   // Additional commands
   handleDuplicatePage,
   handleSetRotation,
@@ -96,7 +97,7 @@ const colorSchema = z.union([
     b: z.number().min(0).max(1).describe('Blue (0-1)'),
     a: z.number().min(0).max(1).optional().describe('Alpha (0-1, optional)')
   }),
-  z.array(z.any()).describe('Full Figma fills array')
+  z.array(z.any()).describe('Full Figma fills array (pass empty array [] to remove all fills)')
 ]);
 
 /**
@@ -1084,6 +1085,20 @@ export function registerTools(server, bridge) {
       newComponentId: z.string().describe('The component ID to swap to')
     },
     async (args) => handleSwapInstance(bridge, args)
+  );
+
+  // figma_set_properties - Set component properties on an instance
+  server.tool(
+    'figma_set_properties',
+    'Set component properties on an instance node. Supports VARIANT, TEXT, BOOLEAN, and INSTANCE_SWAP properties. Use figma_get_nodes (depth: full) first to read componentProperties and discover available property names.',
+    {
+      nodeId: z.string().describe('The instance node ID'),
+      properties: z.record(z.string(), z.union([
+        z.string(),
+        z.boolean()
+      ])).describe('Property name -> value map. Use #id suffix for BOOLEAN/TEXT/INSTANCE_SWAP props (e.g. "Show Icon#0:1": false). No suffix for VARIANT props (e.g. "Size": "Large").')
+    },
+    async (args) => handleSetProperties(bridge, args)
   );
 
   // ============================================================

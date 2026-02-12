@@ -3776,6 +3776,81 @@ export async function handleSwapInstance(bridge, args) {
   }
 }
 
+/**
+ * Set component properties on an instance node
+ */
+export async function handleSetProperties(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: 'NOT_CONNECTED',
+            message: 'Figma plugin is not connected.'
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+
+  const { nodeId, properties } = args;
+
+  if (!nodeId) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: 'INVALID_PARAMS',
+            message: 'nodeId is required'
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+
+  if (!properties || typeof properties !== 'object') {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: 'INVALID_PARAMS',
+            message: 'properties is required and must be an object'
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('set_properties', args);
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify(result, null, 2)
+      }]
+    };
+  } catch (error) {
+    return {
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: {
+            code: error.code || 'UNKNOWN_ERROR',
+            message: error.message
+          }
+        }, null, 2)
+      }],
+      isError: true
+    };
+  }
+}
+
 // ============================================================
 // Additional Commands
 // ============================================================

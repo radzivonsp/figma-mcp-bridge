@@ -203,6 +203,8 @@ async function handleCommand(command, payload) {
       return await setLayoutGrids(payload);
     case 'combine_as_variants':
       return await combineAsVariants(payload);
+    case 'set_properties':
+      return await setProperties(payload);
 
     default:
       throw new Error(`Unknown command: ${command}`);
@@ -3280,9 +3282,10 @@ function serializeNode(node, depth) {
       base.componentPropertyDefinitions = clone(node.componentPropertyDefinitions);
     }
   }
-  // Skip mainComponent for now - requires async which complicates serialization
   if (node.type === 'INSTANCE') {
     base.isInstance = true;
+    base.componentProperties = clone(node.componentProperties);
+    base.mainComponentId = node.mainComponent ? node.mainComponent.id : null;
   }
 
   if ('children' in node) {
@@ -3822,6 +3825,27 @@ async function swapInstance({ instanceId, newComponentId }) {
         height: instance.height
       }
     }
+  };
+}
+
+/**
+ * Set component properties on an instance node
+ */
+async function setProperties({ nodeId, properties }) {
+  const node = await figma.getNodeByIdAsync(nodeId);
+  if (!node) {
+    return { error: { code: 'NODE_NOT_FOUND', message: 'Node ' + nodeId + ' not found' } };
+  }
+  if (node.type !== 'INSTANCE') {
+    return { error: { code: 'NOT_AN_INSTANCE', message: 'Node ' + nodeId + ' is not an instance (type: ' + node.type + ')' } };
+  }
+
+  node.setProperties(properties);
+
+  return {
+    success: true,
+    nodeId: node.id,
+    componentProperties: clone(node.componentProperties)
   };
 }
 
