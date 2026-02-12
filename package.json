@@ -8,7 +8,9 @@
     "figma-mcp-bridge": "src/index.js"
   },
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "pack:mcpb": "npx -y @anthropic-ai/mcpb pack . dist/",
+    "pack:validate": "npx -y @anthropic-ai/mcpb validate ."
   },
   "keywords": [
     "figma",

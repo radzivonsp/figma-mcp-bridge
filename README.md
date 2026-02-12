@@ -44,7 +44,9 @@ Pick one option:
 claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
 ```
 
-**Claude Desktop** — edit your config file:
+**Claude Desktop (via `.mcpb` bundle)**
+
+Download the latest `figma-mcp-bridge-x.x.x.mcpb` from [Releases](https://github.com/radzivonsp/figma-mcp-bridge/releases) and double-click to install. Or configure manually:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
@@ -308,6 +310,43 @@ All tools have full parameter descriptions built-in — Claude discovers them au
 - **Vectors** only support M, L, Q, C, Z commands (no arcs)
 - **`detachInstance()`** cascades to ancestor instances
 - **30-second timeout** on all commands
+
+---
+
+## Distribution & Updates
+
+### How users get updates
+
+| Install method | Update mechanism |
+|----------------|------------------|
+| `claude plugin add github:...` | Run `/plugin marketplace update` in Claude Code, or enable auto-update |
+| `.mcpb` bundle (Desktop) | Download new `.mcpb` from Releases and reinstall |
+| `npx github:...` (Desktop JSON) | Automatically fetches latest on each launch |
+| From source | `git pull && npm install` |
+
+**Claude Code auto-update:** After installing the plugin, run `/plugin` in Claude Code, go to Marketplaces, and enable auto-update. Plugins will refresh at each session start.
+
+### Packaging a new release (for maintainers)
+
+After updating skills, tools, or server code:
+
+```bash
+# 1. Bump version in package.json and manifest.json
+# 2. Validate the mcpb manifest
+npm run pack:validate
+
+# 3. Build the .mcpb bundle for Claude Desktop
+npm run pack:mcpb
+# → outputs dist/figma-mcp-bridge-x.x.x.mcpb
+
+# 4. Commit, tag, and push
+git add -A && git commit -m "Release vX.X.X"
+git tag vX.X.X && git push --tags
+
+# 5. Create a GitHub Release and attach the .mcpb file
+```
+
+Claude Code plugin users get the update automatically (via git). Desktop `.mcpb` users download the new bundle from Releases.
 
 ---
 

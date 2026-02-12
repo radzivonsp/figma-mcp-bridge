@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "figma-mcp-bridge",
+  "display_name": "Figma MCP Bridge",
+  "version": "0.1.2",
+  "description": "Read and manipulate Figma documents in real-time through a WebSocket bridge to a Figma plugin. 82 tools for shapes, styles, components, variables, auto-layout, pages, FigJam, and more.",
+  "author": {
+    "name": "Radzivon Obukh",
+    "url": "https://github.com/radzivonsp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/radzivonsp/figma-mcp-bridge"
+  },
+  "homepage": "https://github.com/radzivonsp/figma-mcp-bridge",
+  "license": "MIT",
+  "keywords": ["figma", "design", "mcp", "figjam", "ui-design", "design-system"],
+  "server": {
+    "type": "node",
+    "entry_point": "src/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["src/index.js"],
+      "env": {
+        "FIGMA_BRIDGE_PORT": "${user_config.port}"
+      }
+    }
+  },
+  "user_config": {
+    "port": {
+      "type": "string",
+      "title": "WebSocket Port",
+      "description": "WebSocket port for Figma plugin connection (default: 3055, auto-increments if busy)",
+      "required": false,
+      "default": "3055"
+    }
+  },
+  "tools_generated": true
+}
