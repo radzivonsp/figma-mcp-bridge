@@ -4447,7 +4447,7 @@ async function createShapeWithText(params) {
 
 async function createCodeBlock(params) {
   var code = params.code;
-  var language = params.language || 'PLAIN_TEXT';
+  var language = params.language || 'PLAINTEXT';
   var x = params.x !== undefined ? params.x : 0;
   var y = params.y !== undefined ? params.y : 0;
   var parentId = params.parentId;

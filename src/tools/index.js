@@ -1290,9 +1290,9 @@ export function registerTools(server, bridge) {
     {
       startNodeId: z.string().describe('Node ID for the start of the connector'),
       endNodeId: z.string().describe('Node ID for the end of the connector'),
-      startMagnet: z.enum(['AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT']).optional().default('AUTO').describe('Start endpoint magnet position'),
-      endMagnet: z.enum(['AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT']).optional().default('AUTO').describe('End endpoint magnet position'),
-      connectorType: z.enum(['ELBOWED', 'STRAIGHT']).optional().default('ELBOWED').describe('Connector line style'),
+      startMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('Start endpoint magnet position'),
+      endMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('End endpoint magnet position'),
+      connectorType: z.enum(['ELBOWED', 'STRAIGHT', 'CURVED']).optional().default('ELBOWED').describe('Connector line style'),
       text: z.string().optional().describe('Label text on the connector'),
       strokes: colorSchema.optional().describe('Connector line color')
     },
@@ -1321,7 +1321,12 @@ export function registerTools(server, bridge) {
       shapeType: z.enum([
         'SQUARE', 'ELLIPSE', 'ROUNDED_RECTANGLE', 'DIAMOND',
         'TRIANGLE_UP', 'TRIANGLE_DOWN', 'PARALLELOGRAM_RIGHT', 'PARALLELOGRAM_LEFT',
-        'ENG_DATABASE', 'ENG_QUEUE', 'ENG_FILE', 'ENG_FOLDER'
+        'ENG_DATABASE', 'ENG_QUEUE', 'ENG_FILE', 'ENG_FOLDER',
+        'TRAPEZOID', 'PREDEFINED_PROCESS', 'SHIELD', 'DOCUMENT_SINGLE',
+        'DOCUMENT_MULTIPLE', 'MANUAL_INPUT', 'HEXAGON', 'CHEVRON',
+        'PENTAGON', 'OCTAGON', 'STAR', 'PLUS',
+        'ARROW_LEFT', 'ARROW_RIGHT', 'SUMMING_JUNCTION', 'OR',
+        'SPEECH_BUBBLE', 'INTERNAL_STORAGE'
       ]).optional().default('ROUNDED_RECTANGLE').describe('Shape type for the container'),
       text: z.string().optional().default('').describe('Text content inside the shape'),
       x: z.number().optional().default(0).describe('X position'),
@@ -1338,7 +1343,10 @@ export function registerTools(server, bridge) {
     'Create a code block in FigJam with syntax highlighting.',
     {
       code: z.string().describe('Code content'),
-      language: z.string().optional().default('PLAIN_TEXT').describe('Language for syntax highlighting (e.g., JAVASCRIPT, TYPESCRIPT, PYTHON, HTML, CSS, JSON, PLAIN_TEXT)'),
+      language: z.enum([
+        'TYPESCRIPT', 'CPP', 'RUBY', 'CSS', 'JAVASCRIPT', 'HTML', 'JSON',
+        'GRAPHQL', 'PYTHON', 'GO', 'SQL', 'SWIFT', 'KOTLIN', 'RUST', 'BASH', 'PLAINTEXT', 'DART'
+      ]).optional().default('PLAINTEXT').describe('Language for syntax highlighting'),
       x: z.number().optional().default(0).describe('X position'),
       y: z.number().optional().default(0).describe('Y position'),
       parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
