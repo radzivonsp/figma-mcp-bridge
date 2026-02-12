@@ -229,12 +229,33 @@
         }
       }
 
+      // Extract file key from parent URL
+      function getFileKeyFromUrl() {
+        try {
+          // Figma URL format: https://www.figma.com/file/{fileKey}/...
+          // FigJam URL format: https://www.figma.com/board/{fileKey}/...
+          const url = window.parent.location.href;
+          const match = url.match(/\/(?:file|board)\/([a-zA-Z0-9]+)/);
+          return match ? match[1] : null;
+        } catch (e) {
+          // Cross-origin access blocked - fallback to null
+          console.warn("[UI] Cannot access parent URL (cross-origin):", e.message);
+          return null;
+        }
+      }
+
       // Messages from main thread
       window.onmessage = (event) => {
         const msg = event.data.pluginMessage;
         if (!msg) return;
 
         if (msg.type === "handshake_info") {
+          // Try to get file key from URL if not available from API
+          const fileKeyFromUrl = getFileKeyFromUrl();
+          if (fileKeyFromUrl && (!msg.payload.fileId || msg.payload.fileId === 'unknown')) {
+            console.log("[UI] Using file key from URL:", fileKeyFromUrl);
+            msg.payload.fileId = fileKeyFromUrl;
+          }
           sendToServer({ type: "handshake", payload: msg.payload });
         } else if (msg.type === "command_response") {
           sendToServer({ responseTo: msg.requestId, payload: msg.payload });

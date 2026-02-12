@@ -167,17 +167,7 @@ figma_set_auto_layout({
 
 **CRITICAL:** You MUST search for variables first and use their EXACT values. NEVER use arbitrary numbers like 15, 17, 20, etc. that don't match your design system tokens.
 
-**Common spacing scale to look for:**
-- `spacing/xs` → 4px
-- `spacing/sm` → 8px
-- `spacing/md` → 16px
-- `spacing/lg` → 24px
-- `spacing/xl` → 32px
-- `spacing/2xl` → 48px
-- `spacing/3xl` → 64px
-
-**If you need 24px padding:** Search for spacing variables → find `spacing/lg = 24` → use 24
-**If you need 12px gap:** Search for spacing variables → if none = 12, **ASK USER** which token to use or if you should create `spacing/sm-md`
+**If you need a specific spacing value:** Search for spacing variables → find the closest match → use that exact value. If no match exists, **ASK USER** which token to use.
 
 ---
 
@@ -197,12 +187,6 @@ figma_search_variables({ namePattern: "*radius*", type: "FLOAT" })
 // Use the value from the variable
 figma_set_corner_radius({ nodeId: "123", radius: 8 })  // radius/md
 ```
-
-Common radius tokens:
-- `radius/sm` (4px)
-- `radius/md` (8px)
-- `radius/lg` (16px)
-- `radius/full` (9999px for pills)
 
 ---
 
@@ -232,13 +216,6 @@ figma_apply_style({
 })
 ```
 
-Common text styles to look for:
-- Headings: `H1`, `H2`, `H3`, `H4`, `H5`, `H6`
-- Body text: `Body/Large`, `Body/Default`, `Body/Small`
-- UI text: `Label`, `Caption`, `Overline`
-
-**If no matching style exists:** Ask user before creating a new one.
-
 ---
 
 #### Rule 5: NEVER Build Raw Frames - Use Component Instances
@@ -267,13 +244,6 @@ figma_set_properties({
   }
 })
 ```
-
-Common components to look for:
-- `Button` (with variants: Primary, Secondary, Ghost)
-- `Input`, `TextField`, `TextArea`
-- `Card`, `Panel`, `Container`
-- `Icon`, `Avatar`, `Badge`
-- `Checkbox`, `Radio`, `Switch`, `Toggle`
 
 **NEVER detach instances** unless the user explicitly requests it. Use component properties to customize.
 
