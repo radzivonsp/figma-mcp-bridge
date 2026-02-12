@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws';
 import { EventEmitter } from 'events';
 
 const DEFAULT_PORT = 3055;
-const REQUEST_TIMEOUT = 30000; // 30 seconds
+const REQUEST_TIMEOUT = 60000; // 60 seconds (increased for large files)
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
 
 export class FigmaBridge extends EventEmitter {

@@ -630,13 +630,16 @@ claude mcp add figma-mcp-bridge -e FIGMA_BRIDGE_PORT=3057 -- npx -y github:radzi
 
 ### Commands Timing Out
 
-**Symptoms:** Tools return timeout errors after 30 seconds
+**Symptoms:** Tools return timeout errors after 60 seconds
 
 **Solutions:**
 1. Check the Figma plugin is still connected (green "Connected" status)
-2. For export operations, try smaller scales or fewer nodes
-3. Complex operations (many nodes, large documents) may timeout - break into smaller batches
-4. Restart the plugin if it's frozen or unresponsive
+2. For very large files or complex operations:
+   - Try processing in smaller batches
+   - For exports, use smaller scales or export fewer nodes at once
+   - For searches, narrow the scope (search within specific pages/frames)
+3. Restart the plugin if it's frozen or unresponsive
+4. For extremely large files, consider increasing the timeout in `src/websocket.js` (line 5)
 
 ### Font Errors
 
@@ -652,17 +655,73 @@ claude mcp add figma-mcp-bridge -e FIGMA_BRIDGE_PORT=3057 -- npx -y github:radzi
 
 **Symptoms:** `figma_get_comments` or `figma_post_comment` return "PAT_NOT_CONFIGURED" error
 
-**Solutions:**
-1. Create a Personal Access Token at **Figma → Settings → Security → Personal access tokens**
-2. Grant scopes: `file_comments:read` and `file_comments:write`
-3. Configure the token:
-   - **Claude Code CLI:**
-     ```bash
-     claude mcp add figma-mcp-bridge -e FIGMA_PAT=figd_xxx -- npx -y github:radzivonsp/figma-mcp-bridge
-     ```
-   - **Claude Desktop:** Add to config (see manual configuration above)
-4. **Restart Claude** after adding the token
-5. The Figma plugin must also be connected (file key comes from handshake)
+**Solution (Step-by-Step):**
+
+#### Step 1: Get Your Figma Personal Access Token
+
+1. Open Figma (web or desktop)
+2. Click your profile picture → **Settings**
+3. Click **Security** in left sidebar
+4. Scroll to **Personal access tokens**
+5. Click **"Create new token"**
+6. Name: `Claude MCP Bridge`
+7. Select scopes:
+   - ✅ `file_comments:read`
+   - ✅ `file_comments:write`
+8. Click **"Create token"**
+9. **Copy the token** (looks like `figd_xxxxxxxxxxxxxxxxxxxx`)
+   - ⚠️ Save it - you won't see it again!
+
+#### Step 2: Add Token to Configuration
+
+**For Claude Desktop:**
+
+1. Open your config file:
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Linux:** `~/.config/Claude/claude_desktop_config.json`
+
+2. Find the `figma-mcp-bridge` section
+
+3. Add `FIGMA_PAT` to the `env` block:
+
+   ```json
+   {
+     "mcpServers": {
+       "figma-mcp-bridge": {
+         "command": "npx",
+         "args": ["-y", "github:radzivonsp/figma-mcp-bridge"],
+         "env": {
+           "FIGMA_BRIDGE_PORT": "3055",
+           "FIGMA_PAT": "figd_xxxxxxxxxxxxxxxxxxxx"
+         }
+       }
+     }
+   }
+   ```
+
+   **Important:**
+   - Add a comma `,` after `"3055"`
+   - Replace `figd_xxx...` with your actual token
+   - The `FIGMA_PAT` line goes **inside** the `"env": { }` block
+
+4. **Save the file** and **restart Claude Desktop**
+
+**For Claude Code CLI:**
+```bash
+claude mcp add figma-mcp-bridge -e FIGMA_PAT=figd_xxx -- npx -y github:radzivonsp/figma-mcp-bridge
+```
+
+#### Step 3: Test It
+
+In Claude, try:
+```
+Get all comments on the current Figma file
+```
+
+Expected: Claude uses `figma_get_comments` and shows comments.
+
+**Note:** The Figma plugin must be connected for comments to work (file key comes from handshake).
 
 ### Platform-Specific Issues
 

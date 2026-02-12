@@ -161,7 +161,7 @@ figma_search_styles({ nameContains: 'primary', type: 'PAINT' })
 
 ### BridgeError Codes
 - `NOT_CONNECTED` - Plugin not connected
-- `TIMEOUT` - Command exceeded 30s
+- `TIMEOUT` - Command exceeded 60s (configurable in src/websocket.js)
 - `NODE_NOT_FOUND` - Invalid node ID
 - `INVALID_PARAMS` - Missing/invalid parameters
 - `OPERATION_FAILED` - Figma API error
