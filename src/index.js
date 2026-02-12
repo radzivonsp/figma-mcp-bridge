@@ -15,22 +15,64 @@ import { execSync } from 'child_process';
 const PORT = parseInt(process.env.FIGMA_BRIDGE_PORT || '3055', 10);
 
 function killStaleProcess(port) {
+  const isWindows = process.platform === 'win32';
+
   try {
-    const output = execSync(`lsof -ti :${port}`, { encoding: 'utf8' }).trim();
-    if (output) {
-      const pids = output.split('\n').filter(p => p && p !== String(process.pid));
-      for (const pid of pids) {
-        try {
-          process.kill(parseInt(pid, 10), 'SIGTERM');
-          console.error(`[FigmaMCP] Killed stale process ${pid} on port ${port}`);
-        } catch (e) { /* already dead */ }
+    if (isWindows) {
+      // Windows: Use netstat to find process, taskkill to terminate
+      const output = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' }).trim();
+      if (output) {
+        // Parse PID from netstat output (last column)
+        const lines = output.split('\n');
+        const pids = new Set();
+
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          const pid = parts[parts.length - 1];
+          if (pid && pid !== String(process.pid) && /^\d+$/.test(pid)) {
+            pids.add(pid);
+          }
+        }
+
+        for (const pid of pids) {
+          try {
+            execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
+            console.error(`[FigmaMCP] Killed stale process ${pid} on port ${port}`);
+          } catch (e) { /* already dead or access denied */ }
+        }
+
+        // Brief wait for port release (Windows timeout command)
+        if (pids.size > 0) {
+          try {
+            execSync('timeout /t 1 /nobreak', { stdio: 'ignore' });
+          } catch (e) { /* timeout command may not be available */ }
+        }
       }
-      // Brief wait for port to be released
-      if (pids.length > 0) {
-        execSync('sleep 0.5');
+    } else {
+      // macOS/Linux: Use lsof
+      const output = execSync(`lsof -ti :${port}`, { encoding: 'utf8' }).trim();
+      if (output) {
+        const pids = output.split('\n').filter(p => p && p !== String(process.pid));
+        for (const pid of pids) {
+          try {
+            process.kill(parseInt(pid, 10), 'SIGTERM');
+            console.error(`[FigmaMCP] Killed stale process ${pid} on port ${port}`);
+          } catch (e) { /* already dead */ }
+        }
+
+        // Brief wait for port to be released
+        if (pids.length > 0) {
+          execSync('sleep 0.5');
+        }
       }
     }
-  } catch (e) { /* no process on port — good */ }
+  } catch (e) {
+    // No process on port (good) OR command failed
+    // Exit code 1 typically means "no match found" which is expected
+    if (e.status !== 1 && e.code !== 'ENOENT') {
+      console.error(`[FigmaMCP] Process cleanup check completed (${e.message})`);
+    }
+  }
 }
 
 async function main() {

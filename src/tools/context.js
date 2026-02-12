@@ -39,11 +39,17 @@ export async function handleGetContext(bridge) {
       }]
     };
   } catch (error) {
+    // Determine actual connection status based on error type
+    // NOT_CONNECTED = definitely disconnected
+    // TIMEOUT = connection may be stale, check bridge status
+    // Other errors = bridge reports connected but command failed
+    const isConnected = error.code !== 'NOT_CONNECTED' && bridge.isConnected();
+
     return {
       content: [{
         type: 'text',
         text: JSON.stringify({
-          connected: true,
+          connected: isConnected,
           error: {
             code: error.code || 'UNKNOWN_ERROR',
             message: error.message

@@ -27,6 +27,90 @@ Claude Code ←──stdio──→ MCP Server ←──WebSocket──→ Figma
 
 ---
 
+## How It Works (First-Time User Guide)
+
+### The Big Picture
+
+This tool has **two parts** that work together to let Claude control Figma:
+
+1. **MCP Server** (runs on your computer) - Node.js server that lets Claude communicate with Figma
+2. **Figma Plugin** (runs inside Figma) - Executes commands in your Figma file
+
+They talk to each other via WebSocket on `localhost:3055` (or 3056-3070 if port 3055 is busy).
+
+### How The Connection Works
+
+```
+You ask Claude to create a button
+         ↓
+Claude calls MCP tool (figma_create_rectangle)
+         ↓
+MCP Server sends command via WebSocket
+         ↓
+Figma Plugin receives command
+         ↓
+Figma Plugin executes Figma API calls
+         ↓
+Result sent back through the same chain
+         ↓
+Claude shows you the result
+```
+
+### Installation Flow (What You Need to Do)
+
+**Step 1:** Install the **MCP server**
+- Via Claude Code CLI: `claude mcp add figma-mcp-bridge -- npx -y github:radzivonsp/figma-mcp-bridge`
+- Via Claude Desktop: Download `.mcpb` bundle and double-click
+- This runs automatically when you use Claude
+
+**Step 2:** Install the **Figma plugin** (one-time setup)
+- You need the `plugin/manifest.json` file from this repo
+- Clone the repo OR download just the `plugin/` folder
+- In Figma: **Plugins → Development → Import plugin from manifest**
+- Select the `plugin/manifest.json` file
+- Now "Claude Figma Bridge" appears in your plugins menu
+
+**Step 3:** Connect them (every time you use Figma)
+1. Open any Figma file
+2. Run: **Plugins → Development → Claude Figma Bridge**
+3. Wait for **green "Connected"** status in the plugin UI
+4. Now ask Claude to design! Try: "Create a login form with email and password fields"
+
+**Step 4 (optional):** Install design skills for `/figma-design` and `/figjam-design` slash commands
+
+### Common Questions
+
+**Q: Do I need to clone the entire repo?**
+- **For MCP server:** No (if using `npx github:...` or `.mcpb` bundle)
+- **For Figma plugin:** Yes, you need the `plugin/` folder with `manifest.json`
+
+**Q: Why two separate installations?**
+- The MCP server runs in Claude's process (Node.js)
+- The Figma plugin runs in Figma's process (sandboxed JavaScript environment)
+- They're two different runtime environments that need separate installation
+
+**Q: Do I need to keep the Figma plugin UI open?**
+- **Yes** - The plugin must be running for Claude to send commands
+- You can minimize the UI window, but don't close it
+- If you close it, Claude will get "NOT_CONNECTED" errors
+
+**Q: Can multiple people use this at once?**
+- Each person needs their own MCP server + Figma plugin running
+- The plugin is per-Figma-file, so each file needs the plugin running
+- Multiple Claude instances can run on different ports (3055, 3056, etc.)
+
+**Q: What if I restart Figma or Claude?**
+- **Figma restart:** Reopen the file, run the plugin again
+- **Claude restart:** MCP server auto-restarts, plugin reconnects automatically
+- **Both restart:** Run the plugin again after both are open
+
+**Q: How do I know it's working?**
+- Figma plugin shows **green "Connected"** status
+- Claude Code: `/mcp list` shows `figma-mcp-bridge` as connected
+- Try asking Claude: "What Figma file is currently open?" (uses `figma_get_context`)
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -159,6 +243,64 @@ Type `/figma-design` then describe what you want — or just ask Claude directly
 |----------|---------|-------------|
 | `FIGMA_BRIDGE_PORT` | `3055` | WebSocket server port (auto-increments up to 3070 if busy) |
 | `FIGMA_PAT` | — | Figma Personal Access Token for Comments API (scopes: `file_comments:read`, `file_comments:write`) |
+
+### Port Auto-Increment Behavior
+
+The MCP server automatically finds an available port to avoid conflicts:
+
+**How it works:**
+1. Tries to start on `FIGMA_BRIDGE_PORT` (default: `3055`)
+2. If port is busy, kills stale processes from previous runs (platform-aware: `lsof` on macOS/Linux, `netstat` on Windows)
+3. If still busy, auto-increments: `3056`, `3057`, ... up to `3070`
+4. Logs which port it actually started on: `[FigmaMCP] MCP server running on port XXXX`
+
+**Important:** The Figma plugin UI has a **port input field**. If the server uses a different port (e.g., 3056), you **must**:
+1. Look at the server logs to see which port it chose
+2. Enter that port number in the Figma plugin UI
+3. Click **"Reconnect"**
+
+**Setting a fixed port:**
+
+Sometimes you want to force a specific port (running multiple instances, port conflicts, etc.):
+
+```bash
+# Claude Code CLI
+claude mcp add figma-mcp-bridge -e FIGMA_BRIDGE_PORT=3057 -- npx -y github:radzivonsp/figma-mcp-bridge
+
+# Claude Desktop - edit config file manually
+{
+  "mcpServers": {
+    "figma-mcp-bridge": {
+      "command": "npx",
+      "args": ["-y", "github:radzivonsp/figma-mcp-bridge"],
+      "env": {
+        "FIGMA_BRIDGE_PORT": "3057"
+      }
+    }
+  }
+}
+
+# From source
+FIGMA_BRIDGE_PORT=3057 node src/index.js
+```
+
+**Running multiple Claude instances:**
+
+Each instance needs its own port:
+
+```bash
+# Terminal 1 - Instance A
+FIGMA_BRIDGE_PORT=3055 claude
+
+# Terminal 2 - Instance B
+FIGMA_BRIDGE_PORT=3056 claude
+```
+
+Then:
+- Open Figma file A → Run plugin → Set port to `3055` → Connect to Instance A
+- Open Figma file B → Run plugin → Set port to `3056` → Connect to Instance B
+
+Each Claude instance can control its own Figma file independently!
 
 ---
 
@@ -385,28 +527,177 @@ Claude Code plugin users get the update automatically (via git). Desktop users d
 
 ## Troubleshooting
 
-**Plugin not connecting?**
-1. Check the MCP server is running
-2. Default port is 3055 — set `FIGMA_BRIDGE_PORT` if needed
-3. Restart the plugin in Figma or click "Reconnect"
+### Plugin Not Connecting
 
-**Port already in use?**
-The server auto-tries ports 3055-3070. Force a specific port:
+**Symptoms:** Figma plugin shows "Disconnected" (red status)
+
+**Solutions:**
+1. **Check MCP server is running:**
+   - Claude Code: Run `/mcp list` to see if `figma-mcp-bridge` is listed and connected
+   - Claude Desktop: Restart the app (the MCP server auto-starts)
+2. **Check the port matches:**
+   - Look at MCP server logs for `[FigmaMCP] MCP server running on port XXXX`
+   - In Figma plugin UI, enter that port number and click "Reconnect"
+3. **Restart the plugin:**
+   - Close and reopen: Plugins → Development → Claude Figma Bridge
+4. **Check firewall/network:**
+   - The connection is `localhost` only, but some firewalls block WebSocket on non-standard ports
+   - Try the default port 3055 first
+
+### Claude Desktop .mcpb Installation Errors
+
+**Symptoms:** "Server failed to start" or MCP server shows "Disconnected"
+
+**Solutions:**
+
+1. **Check Claude Desktop logs:**
+   - Help → View Logs (or Console in Dev Tools)
+   - Look for errors from `figma-mcp-bridge`
+
+2. **Common errors and fixes:**
+
+   **"Node.js not found" or "command not found"**
+   - Ensure Node.js 18+ is installed and in your PATH
+   - Test: Open Terminal and run `node --version`
+   - If missing: Download from [nodejs.org](https://nodejs.org/)
+
+   **"Port already in use"**
+   - The server auto-increments from 3055 to 3070
+   - Restart Claude Desktop to retry with next available port
+   - Check Figma plugin UI and update the port number if needed
+
+   **"Cannot find module" or dependency errors**
+   - The .mcpb bundle is self-contained, but may need to reinstall
+   - Delete and reinstall the .mcpb file
+   - OR manually configure with `npx` method (see below)
+
+3. **Manual configuration (if .mcpb fails):**
+
+   Edit your Claude Desktop config file directly:
+   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Linux:** `~/.config/Claude/claude_desktop_config.json`
+
+   ```json
+   {
+     "mcpServers": {
+       "figma-mcp-bridge": {
+         "command": "npx",
+         "args": ["-y", "github:radzivonsp/figma-mcp-bridge"],
+         "env": {
+           "FIGMA_PAT": "figd_xxx"  // Optional: only for Comments API
+         }
+       }
+     }
+   }
+   ```
+
+   Restart Claude Desktop after saving.
+
+### Port Configuration Issues
+
+**The server tries ports in this order:** 3055, 3056, 3057... up to 3070
+
+**Important:** If the server uses a different port than 3055, you **must** update the port number in the Figma plugin UI and click "Reconnect".
+
+**How to find which port is being used:**
+- **Claude Code:** Look at terminal output when starting Claude Code
+- **Claude Desktop:** Help → View Logs, search for `[FigmaMCP] MCP server running on port`
+
+**Force a specific port:**
 ```bash
-FIGMA_BRIDGE_PORT=3057 node src/index.js
+# Claude Code
+claude mcp add figma-mcp-bridge -e FIGMA_BRIDGE_PORT=3057 -- npx -y github:radzivonsp/figma-mcp-bridge
+
+# Claude Desktop (edit config manually)
+{
+  "mcpServers": {
+    "figma-mcp-bridge": {
+      "command": "npx",
+      "args": ["-y", "github:radzivonsp/figma-mcp-bridge"],
+      "env": {
+        "FIGMA_BRIDGE_PORT": "3057"
+      }
+    }
+  }
+}
 ```
 
-**Multiple Claude instances?**
-Each uses a different port automatically. Match the port in the Figma plugin UI.
+**Running multiple Claude instances:**
+- Each instance auto-selects a different port (3055, 3056, etc.)
+- Start separate Figma plugin instances
+- Configure each plugin to match its Claude instance's port
 
-**Commands timing out?**
-Commands have a 30s timeout. Try smaller export scales. Check the plugin is still connected (green status).
+### Commands Timing Out
 
-**Font errors?**
-Text operations require fonts to be installed on your system. The plugin loads fonts automatically but will fail if the font isn't available.
+**Symptoms:** Tools return timeout errors after 30 seconds
 
-**Comments not working?**
-Comment tools require `FIGMA_PAT` environment variable. Create a token at Figma > Settings > Security > Personal access tokens with `file_comments:read` and `file_comments:write` scopes. The plugin must also be connected (file key comes from the plugin handshake).
+**Solutions:**
+1. Check the Figma plugin is still connected (green "Connected" status)
+2. For export operations, try smaller scales or fewer nodes
+3. Complex operations (many nodes, large documents) may timeout - break into smaller batches
+4. Restart the plugin if it's frozen or unresponsive
+
+### Font Errors
+
+**Symptoms:** "Cannot load font" errors when creating/modifying text
+
+**Solutions:**
+- Text operations require fonts installed on your system
+- The plugin auto-loads fonts but fails if unavailable
+- Use system fonts (Inter, Helvetica, Arial, etc.)
+- Or install the required font on your machine first
+
+### Comments Not Working
+
+**Symptoms:** `figma_get_comments` or `figma_post_comment` return "PAT_NOT_CONFIGURED" error
+
+**Solutions:**
+1. Create a Personal Access Token at **Figma → Settings → Security → Personal access tokens**
+2. Grant scopes: `file_comments:read` and `file_comments:write`
+3. Configure the token:
+   - **Claude Code CLI:**
+     ```bash
+     claude mcp add figma-mcp-bridge -e FIGMA_PAT=figd_xxx -- npx -y github:radzivonsp/figma-mcp-bridge
+     ```
+   - **Claude Desktop:** Add to config (see manual configuration above)
+4. **Restart Claude** after adding the token
+5. The Figma plugin must also be connected (file key comes from handshake)
+
+### Platform-Specific Issues
+
+**macOS:**
+- Port cleanup uses `lsof` - should work out of the box
+- If permission errors, the server will auto-increment to next port
+
+**Windows:**
+- Port cleanup uses `netstat` and `taskkill`
+- First run may show process cleanup messages - this is normal
+- If port conflict persists, manually set `FIGMA_BRIDGE_PORT` to unused port
+
+**Linux:**
+- Same as macOS (uses `lsof`)
+- Ensure Node.js is in PATH
+
+### Still Having Issues?
+
+1. **Check versions:**
+   - Node.js 18+ (`node --version`)
+   - Latest Figma desktop app
+   - Latest Claude Code/Desktop
+
+2. **Try the source installation:**
+   ```bash
+   git clone https://github.com/radzivonsp/figma-mcp-bridge.git
+   cd figma-mcp-bridge
+   npm install
+   node src/index.js  # Test if server starts
+   claude mcp add figma-mcp-bridge node /full/path/to/figma-mcp-bridge/src/index.js
+   ```
+
+3. **File an issue:**
+   - [GitHub Issues](https://github.com/radzivonsp/figma-mcp-bridge/issues)
+   - Include: OS, Node version, error logs, installation method
 
 ---
 

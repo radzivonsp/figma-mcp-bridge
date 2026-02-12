@@ -20,9 +20,10 @@
     "entry_point": "src/index.js",
     "mcp_config": {
       "command": "node",
-      "args": ["src/index.js"],
+      "args": ["${entry_point}"],
       "env": {
-        "FIGMA_BRIDGE_PORT": "${user_config.port}"
+        "FIGMA_BRIDGE_PORT": "${user_config.port}",
+        "FIGMA_PAT": "${user_config.figma_pat}"
       }
     }
   },
@@ -33,6 +34,12 @@
       "description": "WebSocket port for Figma plugin connection (default: 3055, auto-increments if busy)",
       "required": false,
       "default": "3055"
+    },
+    "figma_pat": {
+      "type": "string",
+      "title": "Figma Personal Access Token (Optional)",
+      "description": "Required only for Comments API. Create at Figma > Settings > Security > Personal access tokens with file_comments:read and file_comments:write scopes. Leave empty if you don't need comment tools.",
+      "required": false
     }
   },
   "tools_generated": true
