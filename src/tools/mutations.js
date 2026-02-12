@@ -4124,3 +4124,317 @@ export async function handleCombineAsVariants(bridge, args) {
     };
   }
 }
+
+// ============================================================
+// Tier 1: SVG Import, Sections, Component Property Definitions
+// ============================================================
+
+/**
+ * Create a node tree from SVG markup
+ */
+export async function handleCreateNodeFromSvg(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { svg } = args;
+  if (!svg) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'svg string is required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_node_from_svg', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Create a section node
+ */
+export async function handleCreateSection(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_section', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Set dev status on a node
+ */
+export async function handleSetDevStatus(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { nodeId } = args;
+  if (!nodeId) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'nodeId is required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('set_dev_status', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Add a component property definition
+ */
+export async function handleAddComponentProperty(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { componentId, propertyName, type, defaultValue } = args;
+  if (!componentId || !propertyName || !type || defaultValue === undefined) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'componentId, propertyName, type, and defaultValue are required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('add_component_property', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Edit an existing component property definition
+ */
+export async function handleEditComponentProperty(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { componentId, propertyName } = args;
+  if (!componentId || !propertyName) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'componentId and propertyName are required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('edit_component_property', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Delete a component property definition
+ */
+export async function handleDeleteComponentProperty(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { componentId, propertyName } = args;
+  if (!componentId || !propertyName) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'componentId and propertyName are required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('delete_component_property', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+// ============================================================
+// Tier 3: FigJam Tools
+// ============================================================
+
+/**
+ * Create a FigJam sticky note
+ */
+export async function handleCreateSticky(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_sticky', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Create a FigJam connector between nodes
+ */
+export async function handleCreateConnector(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { startNodeId, endNodeId } = args;
+  if (!startNodeId || !endNodeId) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'startNodeId and endNodeId are required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_connector', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Create a FigJam table
+ */
+export async function handleCreateTable(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { rows, columns } = args;
+  if (!rows || !columns) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'rows and columns are required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_table', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Create a FigJam shape with text
+ */
+export async function handleCreateShapeWithText(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_shape_with_text', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}
+
+/**
+ * Create a FigJam code block
+ */
+export async function handleCreateCodeBlock(bridge, args) {
+  if (!bridge.isConnected()) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'NOT_CONNECTED', message: 'Figma plugin is not connected.' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  const { code } = args;
+  if (!code) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: 'INVALID_PARAMS', message: 'code is required' } }, null, 2) }],
+      isError: true
+    };
+  }
+
+  try {
+    const result = await bridge.sendCommand('create_code_block', args);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+  } catch (error) {
+    return {
+      content: [{ type: 'text', text: JSON.stringify({ error: { code: error.code || 'UNKNOWN_ERROR', message: error.message } }, null, 2) }],
+      isError: true
+    };
+  }
+}

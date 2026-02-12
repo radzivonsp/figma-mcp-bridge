@@ -206,6 +206,32 @@ async function handleCommand(command, payload) {
     case 'set_properties':
       return await setProperties(payload);
 
+    // Tier 1: SVG, Sections, Component Property Definitions
+    case 'create_node_from_svg':
+      return await createNodeFromSvg(payload);
+    case 'create_section':
+      return await createSection(payload);
+    case 'set_dev_status':
+      return await setDevStatus(payload);
+    case 'add_component_property':
+      return await addComponentProperty(payload);
+    case 'edit_component_property':
+      return await editComponentProperty(payload);
+    case 'delete_component_property':
+      return await deleteComponentProperty(payload);
+
+    // Tier 3: FigJam
+    case 'create_sticky':
+      return await createSticky(payload);
+    case 'create_connector':
+      return await createConnector(payload);
+    case 'create_table':
+      return await createTable(payload);
+    case 'create_shape_with_text':
+      return await createShapeWithText(payload);
+    case 'create_code_block':
+      return await createCodeBlock(payload);
+
     default:
       throw new Error(`Unknown command: ${command}`);
   }
@@ -4038,6 +4064,418 @@ async function combineAsVariants(params) {
       type: componentSet.type,
       variantCount: componentSet.children.length,
       variantGroupProperties: componentSet.variantGroupProperties ? clone(componentSet.variantGroupProperties) : {}
+    }
+  };
+}
+
+// ============================================================
+// Tier 1: SVG Import, Sections, Component Property Definitions
+// ============================================================
+
+async function createNodeFromSvg(params) {
+  var svg = params.svg;
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var name = params.name;
+  var parentId = params.parentId;
+
+  var node = figma.createNodeFromSvg(svg);
+
+  node.x = x;
+  node.y = y;
+
+  if (name) {
+    node.name = name;
+  }
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(node);
+    }
+  } else {
+    figma.currentPage.appendChild(node);
+  }
+
+  return {
+    success: true,
+    node: serializeNode(node, 'full')
+  };
+}
+
+async function createSection(params) {
+  var name = params.name || 'Section';
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var width = params.width !== undefined ? params.width : 400;
+  var height = params.height !== undefined ? params.height : 300;
+  var fills = params.fills;
+  var parentId = params.parentId;
+
+  var section = figma.createSection();
+  section.name = name;
+  section.x = x;
+  section.y = y;
+  section.resizeWithoutConstraints(width, height);
+
+  if (fills) {
+    section.fills = normalizeFills(fills);
+  }
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(section);
+    }
+  }
+
+  return {
+    success: true,
+    node: serializeNode(section, 'full')
+  };
+}
+
+async function setDevStatus(params) {
+  var nodeId = params.nodeId;
+  var status = params.status;
+
+  var node = await figma.getNodeByIdAsync(nodeId);
+  if (!node) {
+    throw new Error('Node not found: ' + nodeId);
+  }
+
+  if (!('devStatus' in node)) {
+    throw new Error('Node ' + nodeId + ' (' + node.type + ') does not support devStatus');
+  }
+
+  if (status === null) {
+    node.devStatus = null;
+  } else {
+    node.devStatus = { type: status };
+  }
+
+  return {
+    success: true,
+    nodeId: node.id,
+    devStatus: node.devStatus
+  };
+}
+
+async function addComponentProperty(params) {
+  var componentId = params.componentId;
+  var propertyName = params.propertyName;
+  var type = params.type;
+  var defaultValue = params.defaultValue;
+  var preferredValues = params.preferredValues;
+
+  var node = await figma.getNodeByIdAsync(componentId);
+  if (!node) {
+    throw new Error('Node not found: ' + componentId);
+  }
+
+  if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') {
+    throw new Error('Node ' + componentId + ' is not a component (type: ' + node.type + ')');
+  }
+
+  var options = {};
+  if (preferredValues) {
+    options.preferredValues = preferredValues;
+  }
+
+  node.addComponentProperty(propertyName, type, defaultValue, options);
+
+  return {
+    success: true,
+    nodeId: node.id,
+    componentPropertyDefinitions: clone(node.componentPropertyDefinitions)
+  };
+}
+
+async function editComponentProperty(params) {
+  var componentId = params.componentId;
+  var propertyName = params.propertyName;
+  var newName = params.newName;
+  var newDefaultValue = params.newDefaultValue;
+  var newPreferredValues = params.newPreferredValues;
+
+  var node = await figma.getNodeByIdAsync(componentId);
+  if (!node) {
+    throw new Error('Node not found: ' + componentId);
+  }
+
+  if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') {
+    throw new Error('Node ' + componentId + ' is not a component (type: ' + node.type + ')');
+  }
+
+  var newValues = {};
+  if (newName !== undefined) {
+    newValues.name = newName;
+  }
+  if (newDefaultValue !== undefined) {
+    newValues.defaultValue = newDefaultValue;
+  }
+  if (newPreferredValues !== undefined) {
+    newValues.preferredValues = newPreferredValues;
+  }
+
+  node.editComponentProperty(propertyName, newValues);
+
+  return {
+    success: true,
+    nodeId: node.id,
+    componentPropertyDefinitions: clone(node.componentPropertyDefinitions)
+  };
+}
+
+async function deleteComponentProperty(params) {
+  var componentId = params.componentId;
+  var propertyName = params.propertyName;
+
+  var node = await figma.getNodeByIdAsync(componentId);
+  if (!node) {
+    throw new Error('Node not found: ' + componentId);
+  }
+
+  if (node.type !== 'COMPONENT' && node.type !== 'COMPONENT_SET') {
+    throw new Error('Node ' + componentId + ' is not a component (type: ' + node.type + ')');
+  }
+
+  node.deleteComponentProperty(propertyName);
+
+  return {
+    success: true,
+    nodeId: node.id,
+    componentPropertyDefinitions: clone(node.componentPropertyDefinitions)
+  };
+}
+
+// ============================================================
+// Tier 3: FigJam Tools
+// ============================================================
+
+async function createSticky(params) {
+  var text = params.text || '';
+  var color = params.color || 'YELLOW';
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var parentId = params.parentId;
+
+  var sticky = figma.createSticky();
+  sticky.x = x;
+  sticky.y = y;
+
+  // Load font before setting text
+  await figma.loadFontAsync(sticky.text.fontName);
+  sticky.text.characters = text;
+
+  // Set sticky color
+  var colorMap = {
+    'GRAY': { r: 0.77, g: 0.77, b: 0.77 },
+    'ORANGE': { r: 1, g: 0.65, b: 0.31 },
+    'GREEN': { r: 0.56, g: 0.87, b: 0.36 },
+    'BLUE': { r: 0.53, g: 0.76, b: 1 },
+    'VIOLET': { r: 0.76, g: 0.63, b: 1 },
+    'PINK': { r: 1, g: 0.56, b: 0.85 },
+    'LIGHT_GRAY': { r: 0.91, g: 0.91, b: 0.91 },
+    'YELLOW': { r: 1, g: 0.87, b: 0.4 },
+    'TEAL': { r: 0.47, g: 0.87, b: 0.8 },
+    'RED': { r: 1, g: 0.5, b: 0.5 },
+    'LIGHT_GREEN': { r: 0.76, g: 0.93, b: 0.53 },
+    'LIGHT_BLUE': { r: 0.65, g: 0.85, b: 1 }
+  };
+
+  if (colorMap[color]) {
+    sticky.fills = [{ type: 'SOLID', color: colorMap[color] }];
+  }
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(sticky);
+    }
+  }
+
+  return {
+    success: true,
+    node: {
+      id: sticky.id,
+      name: sticky.name,
+      type: sticky.type,
+      x: sticky.x,
+      y: sticky.y,
+      width: sticky.width,
+      height: sticky.height,
+      text: sticky.text.characters
+    }
+  };
+}
+
+async function createConnector(params) {
+  var startNodeId = params.startNodeId;
+  var endNodeId = params.endNodeId;
+  var startMagnet = params.startMagnet || 'AUTO';
+  var endMagnet = params.endMagnet || 'AUTO';
+  var connectorType = params.connectorType || 'ELBOWED';
+  var text = params.text;
+  var strokes = params.strokes;
+
+  var startNode = await figma.getNodeByIdAsync(startNodeId);
+  if (!startNode) {
+    throw new Error('Start node not found: ' + startNodeId);
+  }
+
+  var endNode = await figma.getNodeByIdAsync(endNodeId);
+  if (!endNode) {
+    throw new Error('End node not found: ' + endNodeId);
+  }
+
+  var connector = figma.createConnector();
+  connector.connectorLineType = connectorType;
+
+  // Magnet mapping
+  var magnetMap = { 'AUTO': 'AUTO', 'TOP': 'TOP', 'BOTTOM': 'BOTTOM', 'LEFT': 'LEFT', 'RIGHT': 'RIGHT' };
+
+  connector.connectorStart = {
+    endpointNodeId: startNodeId,
+    magnet: magnetMap[startMagnet] || 'AUTO'
+  };
+
+  connector.connectorEnd = {
+    endpointNodeId: endNodeId,
+    magnet: magnetMap[endMagnet] || 'AUTO'
+  };
+
+  if (text) {
+    await figma.loadFontAsync(connector.text.fontName);
+    connector.text.characters = text;
+  }
+
+  if (strokes) {
+    connector.strokes = normalizeFills(strokes);
+  }
+
+  return {
+    success: true,
+    node: {
+      id: connector.id,
+      name: connector.name,
+      type: connector.type,
+      connectorLineType: connector.connectorLineType,
+      connectorStart: clone(connector.connectorStart),
+      connectorEnd: clone(connector.connectorEnd)
+    }
+  };
+}
+
+async function createTable(params) {
+  var rows = params.rows;
+  var columns = params.columns;
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var parentId = params.parentId;
+
+  var table = figma.createTable(rows, columns);
+  table.x = x;
+  table.y = y;
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(table);
+    }
+  }
+
+  return {
+    success: true,
+    node: {
+      id: table.id,
+      name: table.name,
+      type: table.type,
+      x: table.x,
+      y: table.y,
+      width: table.width,
+      height: table.height,
+      numRows: table.numRows,
+      numColumns: table.numColumns
+    }
+  };
+}
+
+async function createShapeWithText(params) {
+  var shapeType = params.shapeType || 'ROUNDED_RECTANGLE';
+  var text = params.text || '';
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var fills = params.fills;
+  var parentId = params.parentId;
+
+  var shape = figma.createShapeWithText();
+  shape.shapeType = shapeType;
+  shape.x = x;
+  shape.y = y;
+
+  // Load font and set text
+  await figma.loadFontAsync(shape.text.fontName);
+  shape.text.characters = text;
+
+  if (fills) {
+    shape.fills = normalizeFills(fills);
+  }
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(shape);
+    }
+  }
+
+  return {
+    success: true,
+    node: {
+      id: shape.id,
+      name: shape.name,
+      type: shape.type,
+      shapeType: shape.shapeType,
+      x: shape.x,
+      y: shape.y,
+      width: shape.width,
+      height: shape.height,
+      text: shape.text.characters
+    }
+  };
+}
+
+async function createCodeBlock(params) {
+  var code = params.code;
+  var language = params.language || 'PLAIN_TEXT';
+  var x = params.x !== undefined ? params.x : 0;
+  var y = params.y !== undefined ? params.y : 0;
+  var parentId = params.parentId;
+
+  var codeBlock = figma.createCodeBlock();
+  codeBlock.x = x;
+  codeBlock.y = y;
+  codeBlock.code = code;
+  codeBlock.codeLanguage = language;
+
+  if (parentId) {
+    var parent = await figma.getNodeByIdAsync(parentId);
+    if (parent && 'appendChild' in parent) {
+      parent.appendChild(codeBlock);
+    }
+  }
+
+  return {
+    success: true,
+    node: {
+      id: codeBlock.id,
+      name: codeBlock.name,
+      type: codeBlock.type,
+      x: codeBlock.x,
+      y: codeBlock.y,
+      width: codeBlock.width,
+      height: codeBlock.height,
+      language: codeBlock.codeLanguage
     }
   };
 }

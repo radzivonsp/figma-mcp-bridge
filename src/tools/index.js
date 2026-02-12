@@ -83,7 +83,20 @@ import {
   handleDuplicatePage,
   handleSetRotation,
   handleSetLayoutGrids,
-  handleCombineAsVariants
+  handleCombineAsVariants,
+  // Tier 1: SVG, Sections, Component Property Definitions
+  handleCreateNodeFromSvg,
+  handleCreateSection,
+  handleSetDevStatus,
+  handleAddComponentProperty,
+  handleEditComponentProperty,
+  handleDeleteComponentProperty,
+  // Tier 3: FigJam
+  handleCreateSticky,
+  handleCreateConnector,
+  handleCreateTable,
+  handleCreateShapeWithText,
+  handleCreateCodeBlock
 } from './mutations.js';
 
 // Color schema for fill/stroke shorthand
@@ -669,64 +682,63 @@ export function registerTools(server, bridge) {
   // Phase 4 Tools: Polygons, Boolean Operations, Viewport, Blend Mode, Detach
   // ============================================================
 
-  // DISABLED - Uncomment to enable advanced shape tools
-  // // figma_create_polygon - Create a polygon or star
-  // server.tool(
-  //   'figma_create_polygon',
-  //   'Create a polygon (triangle, pentagon, hexagon, etc.) or star shape. Set innerRadius (0-1) to create a star with spiky points.',
-  //   {
-  //     x: z.number().optional().default(0).describe('X position'),
-  //     y: z.number().optional().default(0).describe('Y position'),
-  //     width: z.number().optional().default(100).describe('Width in pixels'),
-  //     height: z.number().optional().default(100).describe('Height in pixels'),
-  //     pointCount: z.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
-  //     innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
-  //     name: z.string().optional().describe('Node name'),
-  //     fills: colorSchema.optional().describe('Fill color'),
-  //     strokes: colorSchema.optional().describe('Stroke color'),
-  //     strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
-  //     cornerRadius: z.number().optional().describe('Corner radius for vertices'),
-  //     parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
-  //   },
-  //   async (args) => handleCreatePolygon(bridge, args)
-  // );
+  // figma_create_polygon - Create a polygon or star
+  server.tool(
+    'figma_create_polygon',
+    'Create a polygon (triangle, pentagon, hexagon, etc.) or star shape. Set innerRadius (0-1) to create a star with spiky points.',
+    {
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      width: z.number().optional().default(100).describe('Width in pixels'),
+      height: z.number().optional().default(100).describe('Height in pixels'),
+      pointCount: z.number().min(3).optional().default(5).describe('Number of sides (polygon) or points (star). Minimum 3.'),
+      innerRadius: z.number().min(0).max(1).optional().describe('Inner radius ratio for stars (0-1). 0 = very spiky, 1 = polygon. Omit for regular polygon.'),
+      name: z.string().optional().describe('Node name'),
+      fills: colorSchema.optional().describe('Fill color'),
+      strokes: colorSchema.optional().describe('Stroke color'),
+      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
+      cornerRadius: z.number().optional().describe('Corner radius for vertices'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreatePolygon(bridge, args)
+  );
 
-  // // figma_boolean_operation - Perform boolean operations on shapes
-  // server.tool(
-  //   'figma_boolean_operation',
-  //   'Combine multiple shapes using boolean operations (union, subtract, intersect, exclude) or flatten them into a single vector.',
-  //   {
-  //     operation: z.enum(['UNION', 'SUBTRACT', 'INTERSECT', 'EXCLUDE', 'FLATTEN']).describe('Boolean operation type: UNION (combine), SUBTRACT (cut), INTERSECT (overlap only), EXCLUDE (non-overlap only), FLATTEN (destructive vector)'),
-  //     nodeIds: z.array(z.string()).min(2).describe('Array of node IDs to combine (minimum 2 nodes)'),
-  //     name: z.string().optional().describe('Name for the resulting node')
-  //   },
-  //   async (args) => handleBooleanOperation(bridge, args)
-  // );
+  // figma_boolean_operation - Perform boolean operations on shapes
+  server.tool(
+    'figma_boolean_operation',
+    'Combine multiple shapes using boolean operations (union, subtract, intersect, exclude) or flatten them into a single vector.',
+    {
+      operation: z.enum(['UNION', 'SUBTRACT', 'INTERSECT', 'EXCLUDE', 'FLATTEN']).describe('Boolean operation type: UNION (combine), SUBTRACT (cut), INTERSECT (overlap only), EXCLUDE (non-overlap only), FLATTEN (destructive vector)'),
+      nodeIds: z.array(z.string()).min(2).describe('Array of node IDs to combine (minimum 2 nodes)'),
+      name: z.string().optional().describe('Name for the resulting node')
+    },
+    async (args) => handleBooleanOperation(bridge, args)
+  );
 
-  // // figma_zoom_to_node - Zoom viewport to focus on specific nodes
-  // server.tool(
-  //   'figma_zoom_to_node',
-  //   'Scroll and zoom the Figma viewport to focus on specific nodes. Automatically calculates zoom level to fit all specified nodes.',
-  //   {
-  //     nodeIds: z.array(z.string()).min(1).describe('Array of node IDs to zoom to')
-  //   },
-  //   async (args) => handleZoomToNode(bridge, args)
-  // );
+  // figma_zoom_to_node - Zoom viewport to focus on specific nodes
+  server.tool(
+    'figma_zoom_to_node',
+    'Scroll and zoom the Figma viewport to focus on specific nodes. Automatically calculates zoom level to fit all specified nodes.',
+    {
+      nodeIds: z.array(z.string()).min(1).describe('Array of node IDs to zoom to')
+    },
+    async (args) => handleZoomToNode(bridge, args)
+  );
 
-  // // figma_set_blend_mode - Set blend mode on a node
-  // server.tool(
-  //   'figma_set_blend_mode',
-  //   'Set the blend mode (layer blending) of a node. Controls how the node visually blends with layers below it.',
-  //   {
-  //     nodeId: z.string().describe('The node ID to modify'),
-  //     blendMode: z.enum([
-  //       'PASS_THROUGH', 'NORMAL', 'DARKEN', 'MULTIPLY', 'LINEAR_BURN', 'COLOR_BURN',
-  //       'LIGHTEN', 'SCREEN', 'LINEAR_DODGE', 'COLOR_DODGE', 'OVERLAY', 'SOFT_LIGHT',
-  //       'HARD_LIGHT', 'DIFFERENCE', 'EXCLUSION', 'HUE', 'SATURATION', 'COLOR', 'LUMINOSITY'
-  //     ]).describe('Blend mode: NORMAL (default), MULTIPLY (darken), SCREEN (lighten), OVERLAY (contrast), etc.')
-  //   },
-  //   async (args) => handleSetBlendMode(bridge, args)
-  // );
+  // figma_set_blend_mode - Set blend mode on a node
+  server.tool(
+    'figma_set_blend_mode',
+    'Set the blend mode (layer blending) of a node. Controls how the node visually blends with layers below it.',
+    {
+      nodeId: z.string().describe('The node ID to modify'),
+      blendMode: z.enum([
+        'PASS_THROUGH', 'NORMAL', 'DARKEN', 'MULTIPLY', 'LINEAR_BURN', 'COLOR_BURN',
+        'LIGHTEN', 'SCREEN', 'LINEAR_DODGE', 'COLOR_DODGE', 'OVERLAY', 'SOFT_LIGHT',
+        'HARD_LIGHT', 'DIFFERENCE', 'EXCLUSION', 'HUE', 'SATURATION', 'COLOR', 'LUMINOSITY'
+      ]).describe('Blend mode: NORMAL (default), MULTIPLY (darken), SCREEN (lighten), OVERLAY (contrast), etc.')
+    },
+    async (args) => handleSetBlendMode(bridge, args)
+  );
 
   // figma_detach_instance - Detach instance from component
   server.tool(
@@ -755,24 +767,23 @@ export function registerTools(server, bridge) {
     async (args) => handleSetLayoutAlign(bridge, args)
   );
 
-  // DISABLED - Uncomment to enable custom vector paths
-  // // figma_create_vector - Create a custom vector path
-  // server.tool(
-  //   'figma_create_vector',
-  //   'Create a custom vector shape using SVG-style path data. Supports M (move), L (line), Q (quadratic curve), C (cubic bezier), Z (close).',
-  //   {
-  //     x: z.number().optional().default(0).describe('X position'),
-  //     y: z.number().optional().default(0).describe('Y position'),
-  //     data: z.string().describe('SVG path string (e.g., "M 0 100 L 100 100 L 50 0 Z" for triangle)'),
-  //     windingRule: z.enum(['NONZERO', 'EVENODD', 'NONE']).optional().default('NONZERO').describe('Fill rule: NONZERO (solid), EVENODD (holes), NONE (outline only)'),
-  //     name: z.string().optional().default('Vector').describe('Node name'),
-  //     fills: colorSchema.optional().describe('Fill color'),
-  //     strokes: colorSchema.optional().describe('Stroke color'),
-  //     strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
-  //     parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
-  //   },
-  //   async (args) => handleCreateVector(bridge, args)
-  // );
+  // figma_create_vector - Create a custom vector path
+  server.tool(
+    'figma_create_vector',
+    'Create a custom vector shape using SVG-style path data. Supports M (move), L (line), Q (quadratic curve), C (cubic bezier), Z (close).',
+    {
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      data: z.string().describe('SVG path string (e.g., "M 0 100 L 100 100 L 50 0 Z" for triangle)'),
+      windingRule: z.enum(['NONZERO', 'EVENODD', 'NONE']).optional().default('NONZERO').describe('Fill rule: NONZERO (solid), EVENODD (holes), NONE (outline only)'),
+      name: z.string().optional().default('Vector').describe('Node name'),
+      fills: colorSchema.optional().describe('Fill color'),
+      strokes: colorSchema.optional().describe('Stroke color'),
+      strokeWeight: z.number().optional().describe('Stroke weight in pixels'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateVector(bridge, args)
+  );
 
   // figma_rename_node - Rename nodes
   server.tool(
@@ -1031,17 +1042,16 @@ export function registerTools(server, bridge) {
     async (args) => handleDeletePage(bridge, args)
   );
 
-  // DISABLED - Uncomment to enable page reordering
-  // // figma_reorder_page - Reorder a page
-  // server.tool(
-  //   'figma_reorder_page',
-  //   'Change the position of a page in the page list.',
-  //   {
-  //     pageId: z.string().describe('The page ID to reorder'),
-  //     index: z.number().describe('New position in the page list (0 = first)')
-  //   },
-  //   async (args) => handleReorderPage(bridge, args)
-  // );
+  // figma_reorder_page - Reorder a page
+  server.tool(
+    'figma_reorder_page',
+    'Change the position of a page in the page list.',
+    {
+      pageId: z.string().describe('The page ID to reorder'),
+      index: z.number().describe('New position in the page list (0 = first)')
+    },
+    async (args) => handleReorderPage(bridge, args)
+  );
 
   // ============================================================
   // Node Structure Tools
@@ -1137,29 +1147,202 @@ export function registerTools(server, bridge) {
     async (args) => handleCombineAsVariants(bridge, args)
   );
 
-  // DISABLED - Uncomment to enable layout grids
-  // // figma_set_layout_grids - Set layout grids on a frame
-  // server.tool(
-  //   'figma_set_layout_grids',
-  //   'Set layout grids on a frame. Grids help with alignment and spacing. Pass an empty array to remove all grids.',
-  //   {
-  //     nodeId: z.string().describe('The frame node ID to set grids on'),
-  //     layoutGrids: z.array(z.object({
-  //       pattern: z.enum(['COLUMNS', 'ROWS', 'GRID']).describe('Grid pattern type'),
-  //       sectionSize: z.number().optional().describe('Size of each column/row/cell in pixels'),
-  //       visible: z.boolean().optional().default(true).describe('Whether grid is visible'),
-  //       color: z.object({
-  //         r: z.number().min(0).max(1).describe('Red (0-1)'),
-  //         g: z.number().min(0).max(1).describe('Green (0-1)'),
-  //         b: z.number().min(0).max(1).describe('Blue (0-1)'),
-  //         a: z.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
-  //       }).optional().describe('Grid color with alpha'),
-  //       alignment: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH']).optional().describe('Column/row alignment (for COLUMNS/ROWS pattern)'),
-  //       gutterSize: z.number().optional().describe('Gutter size between columns/rows in pixels'),
-  //       offset: z.number().optional().describe('Offset from edge in pixels'),
-  //       count: z.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
-  //     })).describe('Array of layout grid configurations')
-  //   },
-  //   async (args) => handleSetLayoutGrids(bridge, args)
-  // );
+  // figma_set_layout_grids - Set layout grids on a frame
+  server.tool(
+    'figma_set_layout_grids',
+    'Set layout grids on a frame. Grids help with alignment and spacing. Pass an empty array to remove all grids.',
+    {
+      nodeId: z.string().describe('The frame node ID to set grids on'),
+      layoutGrids: z.array(z.object({
+        pattern: z.enum(['COLUMNS', 'ROWS', 'GRID']).describe('Grid pattern type'),
+        sectionSize: z.number().optional().describe('Size of each column/row/cell in pixels'),
+        visible: z.boolean().optional().default(true).describe('Whether grid is visible'),
+        color: z.object({
+          r: z.number().min(0).max(1).describe('Red (0-1)'),
+          g: z.number().min(0).max(1).describe('Green (0-1)'),
+          b: z.number().min(0).max(1).describe('Blue (0-1)'),
+          a: z.number().min(0).max(1).optional().default(0.1).describe('Alpha (0-1)')
+        }).optional().describe('Grid color with alpha'),
+        alignment: z.enum(['MIN', 'CENTER', 'MAX', 'STRETCH']).optional().describe('Column/row alignment (for COLUMNS/ROWS pattern)'),
+        gutterSize: z.number().optional().describe('Gutter size between columns/rows in pixels'),
+        offset: z.number().optional().describe('Offset from edge in pixels'),
+        count: z.number().optional().describe('Number of columns/rows (use large number like 100 for auto)')
+      })).describe('Array of layout grid configurations')
+    },
+    async (args) => handleSetLayoutGrids(bridge, args)
+  );
+
+  // ============================================================
+  // Tier 1: SVG Import, Sections, Component Property Definitions
+  // ============================================================
+
+  // figma_create_node_from_svg - Import SVG as a node tree
+  server.tool(
+    'figma_create_node_from_svg',
+    'Parse an SVG string and create a Figma node tree from it. Great for importing icons, illustrations, and vector graphics.',
+    {
+      svg: z.string().describe('SVG markup string (e.g., "<svg>...</svg>")'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      name: z.string().optional().describe('Name for the created node'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateNodeFromSvg(bridge, args)
+  );
+
+  // figma_create_section - Create a section node
+  server.tool(
+    'figma_create_section',
+    'Create a section node for organizing frames and content. Sections are used in both Figma and FigJam for grouping related items.',
+    {
+      name: z.string().optional().default('Section').describe('Section name'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      width: z.number().optional().default(400).describe('Width in pixels'),
+      height: z.number().optional().default(300).describe('Height in pixels'),
+      fills: colorSchema.optional().describe('Section fill color'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateSection(bridge, args)
+  );
+
+  // figma_set_dev_status - Set dev status on a node
+  server.tool(
+    'figma_set_dev_status',
+    'Mark a node as "Ready for Dev" or "Completed" for Dev Mode handoff. Pass null to clear status.',
+    {
+      nodeId: z.string().describe('The node ID to set status on'),
+      status: z.enum(['READY_FOR_DEV', 'COMPLETED']).nullable().describe('Dev status: READY_FOR_DEV, COMPLETED, or null to clear')
+    },
+    async (args) => handleSetDevStatus(bridge, args)
+  );
+
+  // figma_add_component_property - Add a property definition to a component
+  server.tool(
+    'figma_add_component_property',
+    'Add a new property definition to a component. Supports BOOLEAN, TEXT, INSTANCE_SWAP, and VARIANT types.',
+    {
+      componentId: z.string().describe('The component or component set node ID'),
+      propertyName: z.string().describe('Name for the new property'),
+      type: z.enum(['BOOLEAN', 'TEXT', 'INSTANCE_SWAP', 'VARIANT']).describe('Property type'),
+      defaultValue: z.union([z.string(), z.boolean()]).describe('Default value (boolean for BOOLEAN, string for TEXT/VARIANT, component ID for INSTANCE_SWAP)'),
+      preferredValues: z.array(z.object({
+        type: z.enum(['COMPONENT', 'COMPONENT_SET']).describe('Preferred value type'),
+        key: z.string().describe('Component key')
+      })).optional().describe('Preferred values for INSTANCE_SWAP properties')
+    },
+    async (args) => handleAddComponentProperty(bridge, args)
+  );
+
+  // figma_edit_component_property - Edit an existing component property definition
+  server.tool(
+    'figma_edit_component_property',
+    'Modify an existing property definition on a component. Can rename or change default value.',
+    {
+      componentId: z.string().describe('The component or component set node ID'),
+      propertyName: z.string().describe('Current property name (with #id suffix for BOOLEAN/TEXT/INSTANCE_SWAP)'),
+      newName: z.string().optional().describe('New name for the property'),
+      newDefaultValue: z.union([z.string(), z.boolean()]).optional().describe('New default value'),
+      newPreferredValues: z.array(z.object({
+        type: z.enum(['COMPONENT', 'COMPONENT_SET']).describe('Preferred value type'),
+        key: z.string().describe('Component key')
+      })).optional().describe('New preferred values for INSTANCE_SWAP properties')
+    },
+    async (args) => handleEditComponentProperty(bridge, args)
+  );
+
+  // figma_delete_component_property - Delete a component property definition
+  server.tool(
+    'figma_delete_component_property',
+    'Remove a property definition from a component.',
+    {
+      componentId: z.string().describe('The component or component set node ID'),
+      propertyName: z.string().describe('Property name to delete (with #id suffix for BOOLEAN/TEXT/INSTANCE_SWAP)')
+    },
+    async (args) => handleDeleteComponentProperty(bridge, args)
+  );
+
+  // ============================================================
+  // Tier 3: FigJam Tools
+  // ============================================================
+
+  // figma_create_sticky - Create a FigJam sticky note
+  server.tool(
+    'figma_create_sticky',
+    'Create a sticky note in FigJam. Supports different colors and text content.',
+    {
+      text: z.string().optional().default('').describe('Text content of the sticky'),
+      color: z.enum([
+        'GRAY', 'ORANGE', 'GREEN', 'BLUE', 'VIOLET', 'PINK',
+        'LIGHT_GRAY', 'YELLOW', 'TEAL', 'RED', 'LIGHT_GREEN', 'LIGHT_BLUE'
+      ]).optional().default('YELLOW').describe('Sticky note color'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateSticky(bridge, args)
+  );
+
+  // figma_create_connector - Create a FigJam connector line between nodes
+  server.tool(
+    'figma_create_connector',
+    'Create a connector line between two nodes in FigJam. Connectors snap to node endpoints.',
+    {
+      startNodeId: z.string().describe('Node ID for the start of the connector'),
+      endNodeId: z.string().describe('Node ID for the end of the connector'),
+      startMagnet: z.enum(['AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT']).optional().default('AUTO').describe('Start endpoint magnet position'),
+      endMagnet: z.enum(['AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT']).optional().default('AUTO').describe('End endpoint magnet position'),
+      connectorType: z.enum(['ELBOWED', 'STRAIGHT']).optional().default('ELBOWED').describe('Connector line style'),
+      text: z.string().optional().describe('Label text on the connector'),
+      strokes: colorSchema.optional().describe('Connector line color')
+    },
+    async (args) => handleCreateConnector(bridge, args)
+  );
+
+  // figma_create_table - Create a FigJam table
+  server.tool(
+    'figma_create_table',
+    'Create a table in FigJam with the specified number of rows and columns.',
+    {
+      rows: z.number().min(1).max(100).describe('Number of rows'),
+      columns: z.number().min(1).max(100).describe('Number of columns'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateTable(bridge, args)
+  );
+
+  // figma_create_shape_with_text - Create a FigJam shape with text
+  server.tool(
+    'figma_create_shape_with_text',
+    'Create a shape with text in FigJam. Used for flowcharts, diagrams, and visual thinking.',
+    {
+      shapeType: z.enum([
+        'SQUARE', 'ELLIPSE', 'ROUNDED_RECTANGLE', 'DIAMOND',
+        'TRIANGLE_UP', 'TRIANGLE_DOWN', 'PARALLELOGRAM_RIGHT', 'PARALLELOGRAM_LEFT',
+        'ENG_DATABASE', 'ENG_QUEUE', 'ENG_FILE', 'ENG_FOLDER'
+      ]).optional().default('ROUNDED_RECTANGLE').describe('Shape type for the container'),
+      text: z.string().optional().default('').describe('Text content inside the shape'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      fills: colorSchema.optional().describe('Shape fill color'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateShapeWithText(bridge, args)
+  );
+
+  // figma_create_code_block - Create a FigJam code block
+  server.tool(
+    'figma_create_code_block',
+    'Create a code block in FigJam with syntax highlighting.',
+    {
+      code: z.string().describe('Code content'),
+      language: z.string().optional().default('PLAIN_TEXT').describe('Language for syntax highlighting (e.g., JAVASCRIPT, TYPESCRIPT, PYTHON, HTML, CSS, JSON, PLAIN_TEXT)'),
+      x: z.number().optional().default(0).describe('X position'),
+      y: z.number().optional().default(0).describe('Y position'),
+      parentId: z.string().optional().describe('Parent node ID (defaults to current page)')
+    },
+    async (args) => handleCreateCodeBlock(bridge, args)
+  );
 }
