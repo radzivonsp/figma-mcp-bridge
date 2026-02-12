@@ -92,11 +92,10 @@ claude plugin add --from github:radzivonsp/figma-mcp-bridge
 
 **Claude Desktop / Claude Web (claude.ai)**
 
-Skills aren't directly installable as plugins in these environments. Instead, paste the skill content into your project instructions or system prompt:
+Download the `.skill` files and upload them via **Settings → Capabilities → Add → Upload a skill**:
 
-1. Copy the contents of [skills/figma-design/SKILL.md](skills/figma-design/SKILL.md) (and/or [skills/figjam-design/SKILL.md](skills/figjam-design/SKILL.md))
-2. In **Claude Desktop**: add it to your project's custom instructions
-3. In **Claude Web**: paste it at the start of your conversation or into a project's instructions
+- [`figma-design.skill`](bundle/figma-design.skill) — UI design, auto-layout, components, design systems
+- [`figjam-design.skill`](bundle/figjam-design.skill) — FigJam stickies, connectors, flowcharts, diagrams
 
 **From source (cloned repo)**
 
