@@ -21,9 +21,61 @@ allowed-tools: mcp__figma-mcp-bridge__*, mcp__figma-desktop__get_screenshot, mcp
 1. Call `figma_server_info`. If not connected, tell user to run the plugin. Note: the MCP server port can change on restart -- if connected shows false but user says plugin is running, ask them to update the port in the plugin UI to match.
 2. Confirm the open file is a Figma design file (editorType: figma). If it is a FigJam file, tell the user to use the `/figjam-design` skill instead.
 3. Use `figma_get_context` to understand current page, selection, and document structure.
-4. Build content using Figma tools (see tool map below).
-5. Screenshot with `mcp__figma-desktop__get_screenshot` after each major step.
-6. Iterate based on visual feedback.
+4. **Discover the existing design system** before building anything:
+   - `figma_search_variables({ type: "ALL", compact: true })` -- find existing tokens
+   - `figma_search_styles({ type: "ALL", compact: true })` -- find existing styles
+   - `figma_search_components({ compact: true })` -- find existing components
+5. Build content using existing variables, styles, and components. Create new ones only when needed.
+6. Screenshot with `mcp__figma-desktop__get_screenshot` after each major step.
+7. Iterate based on visual feedback.
+
+## Design System Rules (MANDATORY)
+
+These rules apply to every element you create. They ensure consistency and maintainability.
+
+### Always use variables -- never hardcode values
+
+- **Colors**: NEVER use raw hex like `{ color: "#3B82F6" }`. Bind a COLOR variable with `figma_set_variable({ variableId, nodeId, field: "fills", paintIndex: 0 })`. If no variable exists, create one first.
+- **Spacing**: NEVER hardcode padding/gap as magic numbers. Use FLOAT variables for spacing tokens (4, 8, 12, 16, 24, 32, 48, 64).
+- **Corner radius**: NEVER set raw radius values. Use FLOAT variables (e.g., `radius/sm`, `radius/md`, `radius/lg`).
+- **If no variables exist yet**, create a collection and define tokens before building UI.
+
+### Always use text styles -- never style text inline
+
+- Before creating text, search for existing text styles: `figma_search_styles({ type: "TEXT" })`
+- Apply styles with `figma_apply_style({ nodeId, styleId, property: "text" })` instead of `figma_set_text_style`
+- Only use `figma_set_text_style` directly when no matching style exists and the user doesn't want one created
+- If no text styles exist, create a type scale first (H1, H2, H3, Body, Caption, Label)
+
+### Always use auto-layout -- never position manually
+
+- **Every frame** must have auto-layout enabled
+- **NEVER** use `figma_move_nodes` to position children inside a frame -- use alignment and spacing instead
+- `figma_move_nodes` is only for top-level frames on the canvas or absolute-positioned children
+- Use `layoutAlign: "STRETCH"` for children that fill container width
+- Use `layoutGrow: 1` for children that fill remaining space
+
+### Always use components -- never duplicate raw frames
+
+- Before building a UI element, check if a component exists: `figma_search_components({ nameContains: "Button" })`
+- If it exists, use `figma_create_instance` and customize via `figma_set_properties`
+- If it doesn't exist, build it as a frame first, then convert with `figma_create_component({ fromNodeId })`
+- Add component properties for customizable parts (labels, toggles, variants)
+- **NEVER** detach an instance just to change text or visibility -- use component properties
+
+### Always use paint styles for shared colors
+
+- Search first: `figma_search_styles({ type: "PAINT" })`
+- Apply with `figma_apply_style({ nodeId, styleId, property: "fills" })`
+- Variables take precedence when the document uses them
+
+### Always name everything
+
+- **NEVER** leave default names like `"Frame 1"`, `"Rectangle 1"`
+- Rename after creation: `figma_rename_node({ nodeId, name: "Header" })`
+- Components: PascalCase or category prefix (`"Button"`, `"Card/Product"`)
+- Variables: slash-separated (`"colors/primary"`, `"spacing/md"`)
+- Styles: slash-separated folders (`"Heading/H1"`, `"Brand/Primary"`)
 
 ## Search-First Strategy (CRITICAL)
 
