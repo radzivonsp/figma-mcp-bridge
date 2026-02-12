@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "pack:mcpb": "mkdir -p dist && npx -y @anthropic-ai/mcpb pack . && mv figma-mcp-bridge*.mcpb dist/",
+    "pack:mcpb": "mkdir -p bundle && npx -y @anthropic-ai/mcpb pack . && mv figma-mcp-bridge*.mcpb bundle/",
     "pack:validate": "npx -y @anthropic-ai/mcpb validate ."
   },
   "keywords": [

@@ -46,7 +46,7 @@ claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
 
 **Claude Desktop (via `.mcpb` bundle)**
 
-Download [`figma-mcp-bridge.mcpb`](dist/figma-mcp-bridge.mcpb) and double-click to install. Or configure manually:
+Download [`figma-mcp-bridge.mcpb`](bundle/figma-mcp-bridge.mcpb) and double-click to install. Or configure manually:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/Claude/claude_desktop_config.json`
@@ -343,7 +343,7 @@ git add -A && git commit -m "Release vX.X.X"
 git push
 ```
 
-Claude Code plugin users get the update automatically (via git). Desktop users download the updated `dist/figma-mcp-bridge.mcpb` from the repo.
+Claude Code plugin users get the update automatically (via git). Desktop users download the updated `bundle/figma-mcp-bridge.mcpb` from the repo.
 
 ---
 
