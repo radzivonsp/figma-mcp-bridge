@@ -1290,9 +1290,9 @@ export function registerTools(server, bridge) {
     {
       startNodeId: z.string().describe('Node ID for the start of the connector'),
       endNodeId: z.string().describe('Node ID for the end of the connector'),
-      startMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('Start endpoint magnet position'),
-      endMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('End endpoint magnet position'),
-      connectorType: z.enum(['ELBOWED', 'STRAIGHT', 'CURVED']).optional().default('ELBOWED').describe('Connector line style'),
+      startMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('Start endpoint magnet position. STRAIGHT connectors only support CENTER or NONE.'),
+      endMagnet: z.enum(['NONE', 'AUTO', 'TOP', 'BOTTOM', 'LEFT', 'RIGHT', 'CENTER']).optional().default('AUTO').describe('End endpoint magnet position. STRAIGHT connectors only support CENTER or NONE.'),
+      connectorType: z.enum(['ELBOWED', 'STRAIGHT', 'CURVED']).optional().default('ELBOWED').describe('Connector line style. Note: STRAIGHT only allows CENTER/NONE magnets (auto-corrected).'),
       text: z.string().optional().describe('Label text on the connector'),
       strokes: colorSchema.optional().describe('Connector line color')
     },

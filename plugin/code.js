@@ -4332,8 +4332,15 @@ async function createConnector(params) {
   var connector = figma.createConnector();
   connector.connectorLineType = connectorType;
 
-  // Magnet mapping
-  var magnetMap = { 'AUTO': 'AUTO', 'TOP': 'TOP', 'BOTTOM': 'BOTTOM', 'LEFT': 'LEFT', 'RIGHT': 'RIGHT' };
+  // STRAIGHT connectors only support CENTER or NONE magnets
+  if (connectorType === 'STRAIGHT') {
+    var validStraightMagnets = { 'CENTER': 'CENTER', 'NONE': 'NONE' };
+    startMagnet = validStraightMagnets[startMagnet] || 'CENTER';
+    endMagnet = validStraightMagnets[endMagnet] || 'CENTER';
+  }
+
+  // Magnet mapping (all valid magnet types)
+  var magnetMap = { 'AUTO': 'AUTO', 'TOP': 'TOP', 'BOTTOM': 'BOTTOM', 'LEFT': 'LEFT', 'RIGHT': 'RIGHT', 'CENTER': 'CENTER', 'NONE': 'NONE' };
 
   connector.connectorStart = {
     endpointNodeId: startNodeId,
@@ -4346,7 +4353,12 @@ async function createConnector(params) {
   };
 
   if (text) {
-    await figma.loadFontAsync(connector.text.fontName);
+    try {
+      await figma.loadFontAsync(connector.text.fontName);
+    } catch (e) {
+      // Fallback: load Inter Regular if default font fails
+      await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+    }
     connector.text.characters = text;
   }
 
@@ -4455,6 +4467,9 @@ async function createCodeBlock(params) {
   var codeBlock = figma.createCodeBlock();
   codeBlock.x = x;
   codeBlock.y = y;
+
+  // Code blocks require Source Code Pro font to be loaded before setting code
+  await figma.loadFontAsync({ family: 'Source Code Pro', style: 'Medium' });
   codeBlock.code = code;
   codeBlock.codeLanguage = language;
 
