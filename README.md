@@ -1,10 +1,19 @@
-# Figma MCP Bridge
+# Figma MCP Bridge (Extended Fork)
+
+> Forked from [magic-spells/figma-mcp-bridge](https://github.com/magic-spells/figma-mcp-bridge) with additional features.
 
 A Model Context Protocol (MCP) server that enables Claude to read and manipulate Figma documents in real-time through a WebSocket bridge to a Figma plugin.
 
+## Fork Additions
+
+- **`figma_set_properties`** - Set component properties (BOOLEAN, TEXT, VARIANT, INSTANCE_SWAP) on instance nodes via `setProperties()` API
+- **`componentProperties` exposed** in `figma_get_nodes` for INSTANCE nodes — shows all available properties with their types, values, and exact names
+- **`mainComponentId` exposed** on INSTANCE nodes for tracing back to the source component
+- **Empty array support for `figma_set_fills`** — pass `[]` to remove all fills
+
 ## Features
 
-- **62 Figma operations** - Create shapes, modify styles, manage components, export assets
+- **63 Figma operations** - Create shapes, modify styles, manage components, set instance properties, export assets
 - **Real-time bidirectional communication** - Changes appear instantly in Figma
 - **Token-optimized queries** - Efficient variable search and node traversal for AI interactions
 - **Full Figma API access** - Styles, variables, auto-layout, boolean operations, and more
@@ -25,14 +34,13 @@ Claude Code ←──stdio──→ MCP Server ←──WebSocket──→ Figma
 
 ### Installation
 
-#### Option A: Install from npm (recommended)
+#### Option A: Claude Code CLI (recommended)
 
-**For Claude Code CLI:**
 ```bash
-claude mcp add figma-mcp-bridge -- npx @magic-spells/figma-mcp-bridge
+claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
 ```
 
-**For Claude Desktop:**
+#### Option B: Claude Desktop
 
 Edit your config file:
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -43,7 +51,7 @@ Edit your config file:
   "mcpServers": {
     "figma-mcp-bridge": {
       "command": "npx",
-      "args": ["-y", "@magic-spells/figma-mcp-bridge"]
+      "args": ["-y", "github:radzivonsp/figma-mcp-bridge"]
     }
   }
 }
@@ -51,21 +59,11 @@ Edit your config file:
 
 Then restart Claude Desktop.
 
-**Install the Figma plugin:**
-- Download the `plugin` folder from this repo
-- In Figma: **Plugins → Development → Import plugin from manifest**
-- Select `plugin/manifest.json`
-
-**Connect:**
-- Open a Figma file
-- Run the plugin: **Plugins → Development → Claude Figma Bridge**
-- The status should show "Connected"
-
-#### Option B: Install from source
+#### Option C: Install from source (for development)
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/magic-spells/figma-mcp-bridge.git
+   git clone https://github.com/radzivonsp/figma-mcp-bridge.git
    cd figma-mcp-bridge
    npm install
    ```
@@ -75,14 +73,17 @@ Then restart Claude Desktop.
    claude mcp add figma-mcp-bridge node /path/to/figma-mcp-bridge/src/index.js
    ```
 
-3. **Install the Figma plugin**
-   - In Figma: **Plugins → Development → Import plugin from manifest**
-   - Select `plugin/manifest.json` from the cloned repo
+### Install the Figma Plugin
 
-4. **Connect**
-   - Open a Figma file
-   - Run the plugin: **Plugins → Development → Claude Figma Bridge**
-   - The status should show "Connected"
+1. Download or clone this repo
+2. In Figma: **Plugins → Development → Import plugin from manifest**
+3. Select `plugin/manifest.json` from the repo
+
+### Connect
+
+1. Open a Figma file
+2. Run the plugin: **Plugins → Development → Claude Figma Bridge**
+3. The status should show "Connected"
 
 ## Configuration
 
@@ -547,6 +548,33 @@ Returns base64-encoded data.
 ---
 
 ### Component Commands
+
+#### `figma_set_properties`
+Set component properties on an instance node. Supports BOOLEAN, TEXT, VARIANT, and INSTANCE_SWAP property types.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Instance node ID |
+| `properties` | object | Yes | Property name → value map |
+
+**Usage:**
+1. Create an instance with `figma_create_instance`
+2. Read its properties with `figma_get_nodes({ nodeIds: ["ID"], depth: "full" })` — the response now includes `componentProperties`
+3. Call `figma_set_properties` to toggle/set values
+
+**Property name formats:**
+- **BOOLEAN**: `"Show Icon#0:1": false` (name + `#` + ID suffix)
+- **TEXT**: `"Label#0:2": "Submit"` (name + `#` + ID suffix)
+- **INSTANCE_SWAP**: `"Icon#0:3": "5204:3637"` (name + `#` + ID suffix, value is node ID)
+- **VARIANT**: `"Size": "Large"` (name only, no `#` suffix)
+
+#### `figma_swap_instance`
+Swap a component instance to use a different component. Preserves position and size.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `instanceId` | string | Yes | Instance to swap |
+| `newComponentId` | string | Yes | Component to swap to |
 
 #### `figma_detach_instance`
 Detach instance from component (converts to frame).
