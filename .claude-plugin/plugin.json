@@ -1,0 +1,13 @@
+{
+  "name": "figma-mcp-bridge",
+  "version": "0.1.2",
+  "description": "Design skills for the Figma MCP Bridge. Teaches Claude how to create, style, and organize designs in Figma and FigJam using 82 MCP tools.",
+  "author": {
+    "name": "Radzivon Obukh",
+    "url": "https://github.com/radzivonsp"
+  },
+  "homepage": "https://github.com/radzivonsp/figma-mcp-bridge",
+  "repository": "https://github.com/radzivonsp/figma-mcp-bridge",
+  "license": "MIT",
+  "keywords": ["figma", "design", "mcp", "figjam", "ui-design", "design-system"]
+}

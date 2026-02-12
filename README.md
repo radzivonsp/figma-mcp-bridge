@@ -109,6 +109,34 @@ Add to `.claude/settings.local.json`:
 
 ---
 
+## Skills (Claude Code Plugin)
+
+This repo is also a Claude Code **plugin** with design skills that teach Claude best practices for layout, typography, components, and more.
+
+### Available Skills
+
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `/figma-design` | Design UI, build layouts, create components | Auto-layout patterns, typography scales, color systems, component architecture, responsive frames |
+| `/figjam-design` | Brainstorm, diagram, create flowcharts | Stickies, connectors, flowchart shapes, tables, code blocks |
+
+### For direct-clone users (automatic)
+
+If you cloned this repo, the skills are already available via `.claude/skills/` symlinks. Just type `/figma-design` or `/figjam-design` in Claude Code.
+
+### For plugin install (other projects)
+
+To use these skills in any Claude Code project:
+
+```bash
+# Add as a plugin from GitHub
+claude plugin add --from github:radzivonsp/figma-mcp-bridge
+```
+
+The skills become available as `/figma-design` and `/figjam-design` in any project.
+
+---
+
 ## Commands Reference
 
 ### Server Commands
