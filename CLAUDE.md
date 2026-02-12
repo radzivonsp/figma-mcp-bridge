@@ -23,16 +23,24 @@ src/
 ├── server.js          # MCP server setup (McpServer configuration)
 ├── websocket.js       # FigmaBridge class - WebSocket connection management
 └── tools/
-    ├── index.js       # Tool registration with Zod schemas (62 tools)
+    ├── index.js       # Tool registration with Zod schemas (82 tools)
     ├── context.js     # figma_get_context handler
     ├── pages.js       # figma_list_pages handler
     ├── nodes.js       # figma_get_nodes handler
-    └── mutations.js   # All mutation handlers (~35 functions)
+    └── mutations.js   # All mutation handlers
 
 plugin/
 ├── manifest.json      # Figma plugin configuration
 ├── code.js            # Main plugin - Figma API command handlers
 └── ui.html            # WebSocket UI (runs in iframe)
+
+skills/                # Claude Code design skills
+├── figma-design/      # /figma-design skill (auto-layout, typography, components, etc.)
+│   ├── SKILL.md       # Skill definition & workflow
+│   └── *.md           # Reference files (auto-layout, typography, color, etc.)
+└── figjam-design/     # /figjam-design skill (stickies, connectors, flowcharts)
+    ├── SKILL.md       # Skill definition & layout rules
+    └── shapes.md      # FigJam shape types
 ```
 
 ## Adding New Commands
