@@ -13,7 +13,7 @@ A Model Context Protocol (MCP) server that enables Claude to read and manipulate
 
 ## Features
 
-- **63 Figma operations** - Create shapes, modify styles, manage components, set instance properties, export assets
+- **82 Figma operations** - Create shapes, modify styles, manage components, pages, variables, FigJam elements, and more
 - **Real-time bidirectional communication** - Changes appear instantly in Figma
 - **Token-optimized queries** - Efficient variable search and node traversal for AI interactions
 - **Full Figma API access** - Styles, variables, auto-layout, boolean operations, and more
@@ -45,6 +45,9 @@ claude mcp add figma-mcp-bridge -- npx github:radzivonsp/figma-mcp-bridge
 Edit your config file:
 - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux:** `~/.config/Claude/claude_desktop_config.json`
+
+> **Tip (macOS):** The `~/Library` folder is hidden by default. Open Finder, press `Cmd+Shift+G`, and paste `~/Library/Application Support/Claude/` to navigate there. Alternatively, press `Cmd+Shift+.` in Finder to toggle hidden files.
 
 ```json
 {
@@ -107,6 +110,17 @@ Add to `.claude/settings.local.json`:
 ---
 
 ## Commands Reference
+
+### Server Commands
+
+#### `figma_server_info`
+Get information about the MCP server including the WebSocket port and connection status.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| *(none)* | | |
+
+---
 
 ### Query Commands
 
@@ -192,6 +206,18 @@ Search local styles by name. More efficient than `figma_get_local_styles` when l
 | `compact` | boolean | No | `true` | Return minimal data |
 | `limit` | number | No | `50` | Maximum results |
 
+#### `figma_search_variables`
+Search for variables by name pattern. More efficient than `figma_get_local_variables` (~500 tokens vs 25k+).
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `namePattern` | string | No | | Wildcard pattern (`*` = any chars, e.g., `tailwind/orange/*`) |
+| `nameContains` | string | No | | Case-insensitive substring match (e.g., `"orange"` matches `"tailwind/orange/500"`) |
+| `type` | string | No | `"ALL"` | Variable type filter: `COLOR`, `FLOAT`, `STRING`, `BOOLEAN`, `ALL` |
+| `collectionName` | string | No | | Collection name filter |
+| `compact` | boolean | No | `true` | Minimal data (id, name, value only) |
+| `limit` | number | No | `50` | Max results |
+
 ---
 
 ### Creation Commands
@@ -240,6 +266,39 @@ Create a line.
 | `name` | string | No | `"Line"` | Node name |
 | `parentId` | string | No | | Parent node ID |
 
+#### `figma_create_polygon`
+Create a polygon (triangle, pentagon, hexagon, etc.) or star shape.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `width` | number | No | `100` | Width in pixels |
+| `height` | number | No | `100` | Height in pixels |
+| `pointCount` | number | No | `5` | Number of sides (polygon) or points (star). Minimum 3 |
+| `innerRadius` | number | No | | Inner radius ratio for stars (0-1). Omit for regular polygon |
+| `name` | string | No | | Node name |
+| `fills` | color | No | | Fill color |
+| `strokes` | color | No | | Stroke color |
+| `strokeWeight` | number | No | | Stroke weight in pixels |
+| `cornerRadius` | number | No | | Corner radius for vertices |
+| `parentId` | string | No | | Parent node ID |
+
+#### `figma_create_vector`
+Create a custom vector shape using SVG-style path data.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `data` | string | Yes | | SVG path string (e.g., `"M 0 100 L 100 100 L 50 0 Z"`) |
+| `windingRule` | string | No | `"NONZERO"` | Fill rule: `NONZERO`, `EVENODD`, `NONE` |
+| `name` | string | No | `"Vector"` | Node name |
+| `fills` | color | No | | Fill color |
+| `strokes` | color | No | | Stroke color |
+| `strokeWeight` | number | No | | Stroke weight in pixels |
+| `parentId` | string | No | | Parent node ID |
+
 #### `figma_create_frame`
 Create a frame container (supports auto-layout).
 
@@ -251,6 +310,19 @@ Create a frame container (supports auto-layout).
 | `height` | number | No | `100` | Height |
 | `name` | string | No | `"Frame"` | Node name |
 | `fills` | color | No | | Fill color |
+| `parentId` | string | No | | Parent node ID |
+
+#### `figma_create_section`
+Create a section node for organizing frames and content.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | No | `"Section"` | Section name |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `width` | number | No | `400` | Width in pixels |
+| `height` | number | No | `300` | Height in pixels |
+| `fills` | color | No | | Section fill color |
 | `parentId` | string | No | | Parent node ID |
 
 #### `figma_create_text`
@@ -278,31 +350,16 @@ Clone (duplicate) nodes.
 | `offset.x` | number | No | `20` | X offset from original |
 | `offset.y` | number | No | `20` | Y offset from original |
 
-#### `figma_create_component`
-Create a reusable component.
+#### `figma_create_node_from_svg`
+Parse an SVG string and create a Figma node tree from it. Great for importing icons and illustrations.
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `fromNodeId` | string | No | | Convert existing node to component |
+| `svg` | string | Yes | | SVG markup string (e.g., `"<svg>...</svg>"`) |
 | `x` | number | No | `0` | X position |
 | `y` | number | No | `0` | Y position |
-| `width` | number | No | `100` | Width |
-| `height` | number | No | `100` | Height |
-| `name` | string | No | `"Component"` | Component name |
-| `fills` | color | No | | Fill color |
+| `name` | string | No | | Name for the created node |
 | `parentId` | string | No | | Parent node ID |
-| `description` | string | No | | Component description |
-
-#### `figma_create_instance`
-Create an instance of a component.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `componentId` | string | Yes | Component ID to instantiate |
-| `x` | number | No | X position |
-| `y` | number | No | Y position |
-| `parentId` | string | No | Parent node ID |
-| `name` | string | No | Instance name |
 
 ---
 
@@ -320,6 +377,7 @@ Set fill color on a node.
 - Hex: `{ color: "#FF0000" }` or `{ color: "#FF0000AA" }` (with alpha)
 - RGB: `{ r: 1, g: 0, b: 0, a: 0.5 }`
 - Full array: `[{ type: "SOLID", color: { r, g, b }, opacity: 1 }]`
+- Empty: `[]` to remove all fills
 
 #### `figma_set_strokes`
 Set stroke color on a node.
@@ -337,6 +395,22 @@ Set text content on a text node.
 |-----------|------|----------|-------------|
 | `nodeId` | string | Yes | Text node to modify |
 | `text` | string | Yes | New text content |
+
+#### `figma_set_text_style`
+Set font properties on an existing text node.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Text node ID |
+| `fontSize` | number | No | Font size in pixels |
+| `fontFamily` | string | No | Font family (e.g., `"Inter"`) |
+| `fontStyle` | string | No | Font style (e.g., `"Bold"`, `"Regular"`) |
+| `textCase` | string | No | `ORIGINAL`, `UPPER`, `LOWER`, `TITLE` |
+| `textDecoration` | string | No | `NONE`, `UNDERLINE`, `STRIKETHROUGH` |
+| `lineHeight` | object | No | `{ unit: "AUTO" }`, `{ unit: "PIXELS", value: 24 }`, or `{ unit: "PERCENT", value: 150 }` |
+| `letterSpacing` | object | No | `{ unit: "PIXELS", value: 1 }` or `{ unit: "PERCENT", value: 5 }` |
+| `textAlignHorizontal` | string | No | `LEFT`, `CENTER`, `RIGHT`, `JUSTIFIED` |
+| `textAlignVertical` | string | No | `TOP`, `CENTER`, `BOTTOM` |
 
 #### `figma_set_opacity`
 Set node transparency.
@@ -387,6 +461,14 @@ Set effects (shadows, blurs).
 }
 ```
 
+#### `figma_set_blend_mode`
+Set the blend mode (layer blending) of a node.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Node to modify |
+| `blendMode` | string | Yes | `PASS_THROUGH`, `NORMAL`, `DARKEN`, `MULTIPLY`, `LINEAR_BURN`, `COLOR_BURN`, `LIGHTEN`, `SCREEN`, `LINEAR_DODGE`, `COLOR_DODGE`, `OVERLAY`, `SOFT_LIGHT`, `HARD_LIGHT`, `DIFFERENCE`, `EXCLUSION`, `HUE`, `SATURATION`, `COLOR`, `LUMINOSITY` |
+
 #### `figma_apply_style`
 Apply a local style to a node.
 
@@ -395,6 +477,34 @@ Apply a local style to a node.
 | `nodeId` | string | Yes | Node to apply style to |
 | `styleId` | string | Yes | Style ID |
 | `property` | string | Yes | Property: `fills`, `strokes`, `text`, `effects`, `grid` |
+
+#### `figma_create_paint_style`
+Create a local paint style.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Style name (use `/` for folders, e.g., `"Brand/Primary"`) |
+| `fills` | color | Yes | Fill color |
+| `description` | string | No | Style description |
+
+#### `figma_create_text_style`
+Create a local text style.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | Yes | | Style name (use `/` for folders) |
+| `fontFamily` | string | No | `"Inter"` | Font family |
+| `fontStyle` | string | No | `"Regular"` | Font style |
+| `fontSize` | number | No | `16` | Font size in pixels |
+| `lineHeight` | object | No | | Line height |
+| `letterSpacing` | object | No | | Letter spacing |
+| `textCase` | string | No | | `ORIGINAL`, `UPPER`, `LOWER`, `TITLE` |
+| `textDecoration` | string | No | | `NONE`, `UNDERLINE`, `STRIKETHROUGH` |
+| `description` | string | No | | Style description |
+
+---
+
+### Variable Commands
 
 #### `figma_set_variable`
 Set variable value or bind to node property.
@@ -406,6 +516,91 @@ Set variable value or bind to node property.
 | `value` | any | No | Value to set |
 | `nodeId` | string | No | Node ID (for binding) |
 | `field` | string | No | Field to bind (`opacity`, `cornerRadius`, `fills`, etc.) |
+| `paintIndex` | number | No | Paint array index for fills/strokes (default 0) |
+
+#### `figma_create_variable_collection`
+Create a new variable collection to organize variables.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Collection name |
+| `modes` | string[] | No | Mode names (defaults to `["Mode 1"]`) |
+
+#### `figma_create_variable`
+Create a new variable in a collection.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Variable collection ID |
+| `name` | string | Yes | Variable name (use `/` for groups, e.g., `"colors/primary"`) |
+| `type` | string | Yes | `COLOR`, `FLOAT`, `STRING`, `BOOLEAN` |
+| `value` | any | No | Initial value for default mode |
+| `aliasOf` | string | No | Variable ID to alias (instead of direct value) |
+| `description` | string | No | Variable description |
+| `scopes` | string[] | No | Where this variable can be used (e.g., `ALL_SCOPES`, `TEXT_CONTENT`, `ALL_FILLS`, etc.) |
+
+#### `figma_rename_variable`
+Rename an existing variable.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `variableId` | string | Yes | Variable ID to rename |
+| `name` | string | Yes | New name (use `/` for groups) |
+
+#### `figma_delete_variables`
+Delete one or more variables.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `variableIds` | string[] | Yes | Array of variable IDs to delete |
+
+#### `figma_rename_variable_collection`
+Rename a variable collection.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Collection ID to rename |
+| `name` | string | Yes | New name |
+
+#### `figma_delete_variable_collection`
+Delete a variable collection and all its variables.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Collection ID to delete |
+
+#### `figma_rename_mode`
+Rename a mode in a variable collection.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Collection ID containing the mode |
+| `modeId` | string | Yes | Mode ID to rename |
+| `name` | string | Yes | New name for the mode |
+
+#### `figma_add_mode`
+Add a new mode to a variable collection.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Collection ID to add mode to |
+| `name` | string | Yes | Name for the new mode |
+
+#### `figma_delete_mode`
+Delete a mode from a variable collection. Cannot delete the last mode.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `collectionId` | string | Yes | Collection ID containing the mode |
+| `modeId` | string | Yes | Mode ID to delete |
+
+#### `figma_unbind_variable`
+Remove a variable binding from a node property.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Node ID to unbind from |
+| `field` | string | Yes | Field to unbind (`fills`, `strokes`, `opacity`, `cornerRadius`, etc.) |
 | `paintIndex` | number | No | Paint array index for fills/strokes (default 0) |
 
 ---
@@ -441,6 +636,39 @@ Set child alignment in auto-layout.
 | `layoutGrow` | number | No | Growth factor (0-1) |
 | `layoutPositioning` | string | No | `AUTO`, `ABSOLUTE` |
 
+#### `figma_set_layout_grids`
+Set layout grids on a frame. Pass an empty array to remove all grids.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Frame node ID |
+| `layoutGrids` | array | Yes | Array of grid configurations |
+
+**Grid configuration:**
+```json
+{
+  "pattern": "COLUMNS",
+  "sectionSize": 100,
+  "visible": true,
+  "color": { "r": 1, "g": 0, "b": 0, "a": 0.1 },
+  "alignment": "STRETCH",
+  "gutterSize": 20,
+  "offset": 0,
+  "count": 12
+}
+```
+
+Patterns: `COLUMNS`, `ROWS`, `GRID`. Alignment (for COLUMNS/ROWS): `MIN`, `CENTER`, `MAX`, `STRETCH`.
+
+#### `figma_set_constraints`
+Set resize constraints (non-auto-layout frames only).
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Node to configure |
+| `horizontal` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
+| `vertical` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
+
 ---
 
 ### Transform Commands
@@ -464,6 +692,14 @@ Resize nodes.
 | `width` | number | No | New width |
 | `height` | number | No | New height |
 
+#### `figma_set_rotation`
+Set the rotation of one or more nodes. Rotation is around the center point.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeIds` | string[] | Yes | Nodes to rotate |
+| `rotation` | number | Yes | Rotation in degrees (-180 to 180) |
+
 #### `figma_delete_nodes`
 Delete nodes.
 
@@ -486,6 +722,15 @@ Ungroup group nodes.
 |-----------|------|----------|-------------|
 | `nodeIds` | string[] | Yes | Group nodes to ungroup |
 
+#### `figma_boolean_operation`
+Combine multiple shapes using boolean operations or flatten them into a single vector.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `operation` | string | Yes | `UNION` (combine), `SUBTRACT` (cut), `INTERSECT` (overlap only), `EXCLUDE` (non-overlap only), `FLATTEN` (destructive vector) |
+| `nodeIds` | string[] | Yes | Array of node IDs to combine (minimum 2) |
+| `name` | string | No | Name for the resulting node |
+
 #### `figma_rename_node`
 Rename nodes.
 
@@ -503,14 +748,24 @@ Change z-order (layer order).
 | `nodeId` | string | Yes | Node to reorder |
 | `position` | string/number | Yes | `"front"`, `"back"`, or index number |
 
-#### `figma_set_constraints`
-Set resize constraints (non-auto-layout frames only).
+#### `figma_reparent_nodes`
+Move nodes to a different parent container.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `nodeId` | string | Yes | Node to configure |
-| `horizontal` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
-| `vertical` | string | No | `MIN`, `CENTER`, `MAX`, `STRETCH`, `SCALE` |
+| `nodeIds` | string[] | Yes | Nodes to move |
+| `newParentId` | string | Yes | New parent node ID (frame, group, or page) |
+| `index` | number | No | Position within parent (0 = bottom/back, defaults to top/front) |
+
+#### `figma_move_to_page`
+Move nodes from their current page to a different page.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeIds` | string[] | Yes | Nodes to move |
+| `targetPageId` | string | Yes | Destination page ID |
+| `x` | number | No | X position on the target page |
+| `y` | number | No | Y position on the target page |
 
 ---
 
@@ -530,6 +785,56 @@ Switch to a different page.
 |-----------|------|----------|-------------|
 | `pageId` | string | Yes | Page ID to switch to |
 
+#### `figma_zoom_to_node`
+Scroll and zoom the Figma viewport to focus on specific nodes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeIds` | string[] | Yes | Nodes to zoom to (minimum 1) |
+
+---
+
+### Page Management Commands
+
+#### `figma_create_page`
+Create a new page in the Figma document.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Name for the new page |
+| `index` | number | No | Position in the page list (0 = first, defaults to end) |
+
+#### `figma_rename_page`
+Rename an existing page.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `pageId` | string | Yes | Page ID to rename |
+| `name` | string | Yes | New name |
+
+#### `figma_delete_page`
+Delete a page. Cannot delete the last remaining page.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `pageId` | string | Yes | Page ID to delete |
+
+#### `figma_reorder_page`
+Change the position of a page in the page list.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `pageId` | string | Yes | Page ID to reorder |
+| `index` | number | Yes | New position (0 = first) |
+
+#### `figma_duplicate_page`
+Clone an entire page including all its contents.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `pageId` | string | Yes | Page ID to duplicate |
+| `name` | string | No | Name for the new page (defaults to "original name + copy") |
+
 ---
 
 ### Export Commands
@@ -548,6 +853,32 @@ Returns base64-encoded data.
 ---
 
 ### Component Commands
+
+#### `figma_create_component`
+Create a reusable component.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `fromNodeId` | string | No | | Convert existing node to component |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `width` | number | No | `100` | Width |
+| `height` | number | No | `100` | Height |
+| `name` | string | No | `"Component"` | Component name |
+| `fills` | color | No | | Fill color |
+| `parentId` | string | No | | Parent node ID |
+| `description` | string | No | | Component description |
+
+#### `figma_create_instance`
+Create an instance of a component.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `componentId` | string | Yes | Component ID to instantiate |
+| `x` | number | No | X position |
+| `y` | number | No | Y position |
+| `parentId` | string | No | Parent node ID |
+| `name` | string | No | Instance name |
 
 #### `figma_set_properties`
 Set component properties on an instance node. Supports BOOLEAN, TEXT, VARIANT, and INSTANCE_SWAP property types.
@@ -583,6 +914,117 @@ Detach instance from component (converts to frame).
 |-----------|------|----------|-------------|
 | `nodeId` | string | Yes | Instance to detach |
 
+#### `figma_combine_as_variants`
+Combine multiple components into a component set with variants.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `componentIds` | string[] | Yes | Component IDs to combine (minimum 2) |
+
+#### `figma_add_component_property`
+Add a new property definition to a component.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `componentId` | string | Yes | Component or component set node ID |
+| `propertyName` | string | Yes | Name for the new property |
+| `type` | string | Yes | `BOOLEAN`, `TEXT`, `INSTANCE_SWAP`, `VARIANT` |
+| `defaultValue` | string/boolean | Yes | Default value |
+| `preferredValues` | array | No | Preferred values for INSTANCE_SWAP properties |
+
+#### `figma_edit_component_property`
+Modify an existing property definition on a component.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `componentId` | string | Yes | Component or component set node ID |
+| `propertyName` | string | Yes | Current property name (with `#id` suffix for BOOLEAN/TEXT/INSTANCE_SWAP) |
+| `newName` | string | No | New name for the property |
+| `newDefaultValue` | string/boolean | No | New default value |
+| `newPreferredValues` | array | No | New preferred values for INSTANCE_SWAP properties |
+
+#### `figma_delete_component_property`
+Remove a property definition from a component.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `componentId` | string | Yes | Component or component set node ID |
+| `propertyName` | string | Yes | Property name to delete (with `#id` suffix for BOOLEAN/TEXT/INSTANCE_SWAP) |
+
+---
+
+### Dev Mode Commands
+
+#### `figma_set_dev_status`
+Mark a node as "Ready for Dev" or "Completed" for Dev Mode handoff.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `nodeId` | string | Yes | Node to set status on |
+| `status` | string/null | Yes | `READY_FOR_DEV`, `COMPLETED`, or `null` to clear |
+
+---
+
+### FigJam Commands
+
+#### `figma_create_sticky`
+Create a sticky note in FigJam.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `text` | string | No | `""` | Text content |
+| `color` | string | No | `"YELLOW"` | Color: `GRAY`, `ORANGE`, `GREEN`, `BLUE`, `VIOLET`, `PINK`, `LIGHT_GRAY`, `YELLOW`, `TEAL`, `RED`, `LIGHT_GREEN`, `LIGHT_BLUE` |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `parentId` | string | No | | Parent node ID |
+
+#### `figma_create_connector`
+Create a connector line between two nodes in FigJam.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `startNodeId` | string | Yes | | Start node ID |
+| `endNodeId` | string | Yes | | End node ID |
+| `startMagnet` | string | No | `"AUTO"` | Start position: `AUTO`, `TOP`, `BOTTOM`, `LEFT`, `RIGHT` |
+| `endMagnet` | string | No | `"AUTO"` | End position: `AUTO`, `TOP`, `BOTTOM`, `LEFT`, `RIGHT` |
+| `connectorType` | string | No | `"ELBOWED"` | Line style: `ELBOWED`, `STRAIGHT` |
+| `text` | string | No | | Label text on connector |
+| `strokes` | color | No | | Connector line color |
+
+#### `figma_create_table`
+Create a table in FigJam.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `rows` | number | Yes | | Number of rows (1-100) |
+| `columns` | number | Yes | | Number of columns (1-100) |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `parentId` | string | No | | Parent node ID |
+
+#### `figma_create_shape_with_text`
+Create a shape with text in FigJam. Used for flowcharts and diagrams.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `shapeType` | string | No | `"ROUNDED_RECTANGLE"` | Shape: `SQUARE`, `ELLIPSE`, `ROUNDED_RECTANGLE`, `DIAMOND`, `TRIANGLE_UP`, `TRIANGLE_DOWN`, `PARALLELOGRAM_RIGHT`, `PARALLELOGRAM_LEFT`, `ENG_DATABASE`, `ENG_QUEUE`, `ENG_FILE`, `ENG_FOLDER` |
+| `text` | string | No | `""` | Text content |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `fills` | color | No | | Shape fill color |
+| `parentId` | string | No | | Parent node ID |
+
+#### `figma_create_code_block`
+Create a code block in FigJam with syntax highlighting.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `code` | string | Yes | | Code content |
+| `language` | string | No | `"PLAIN_TEXT"` | Language: `JAVASCRIPT`, `TYPESCRIPT`, `PYTHON`, `HTML`, `CSS`, `JSON`, `PLAIN_TEXT`, etc. |
+| `x` | number | No | `0` | X position |
+| `y` | number | No | `0` | Y position |
+| `parentId` | string | No | | Parent node ID |
+
 ---
 
 ## Token Optimization
@@ -603,16 +1045,6 @@ figma_search_variables({
   limit: 50
 })
 ```
-
-**`figma_search_variables` parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `namePattern` | string | | Wildcard pattern (`*` = any chars) |
-| `type` | string | `"ALL"` | Variable type filter |
-| `collectionName` | string | | Collection name filter |
-| `compact` | boolean | `true` | Minimal data (id, name, value only) |
-| `limit` | number | `50` | Max results |
 
 ### Node Traversal
 
