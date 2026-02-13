@@ -3,7 +3,7 @@
   "name": "figma-mcp-bridge",
   "display_name": "Figma MCP Bridge",
   "version": "0.1.2",
-  "description": "Read and manipulate Figma documents in real-time through a WebSocket bridge to a Figma plugin. 82 tools for shapes, styles, components, variables, auto-layout, pages, FigJam, and more.",
+  "description": "Read and manipulate Figma documents in real-time through a WebSocket bridge to a Figma plugin. 84 tools for shapes, styles, components, variables, auto-layout, pages, FigJam, and more.",
   "author": {
     "name": "Radzivon Obukh",
     "url": "https://github.com/radzivonsp"

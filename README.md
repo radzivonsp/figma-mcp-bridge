@@ -315,14 +315,7 @@ Skills directory:
 ```
 skills/
 ├── figma-design/
-│   ├── SKILL.md              # Workflow, design system rules
-│   ├── auto-layout.md        # Sizing modes, alignment, nesting
-│   ├── typography.md          # Text creation, font styles, heading scales
-│   ├── color-and-fills.md     # Color formats, paint styles, opacity
-│   ├── components.md          # Components, instances, variants, properties
-│   ├── variables.md           # Variable collections, modes, binding, theming
-│   ├── effects.md             # Shadows, blurs, blend modes
-│   └── recipes.md             # Common UI patterns (card, button, nav, etc.)
+│   └── SKILL.md               # Workflow, design system rules, auto-layout, typography, components, variables, effects, recipes
 └── figjam-design/
     ├── SKILL.md               # Layout rules, spacing constants
     └── shapes.md              # FigJam shape types for flowcharts
@@ -487,7 +480,7 @@ All tools have full parameter descriptions built-in — Claude discovers them au
 - **Lines** have height=0 — use `length` parameter
 - **Vectors** only support M, L, Q, C, Z commands (no arcs)
 - **`detachInstance()`** cascades to ancestor instances
-- **30-second timeout** on all commands
+- **60-second timeout** on all commands
 
 ---
 
