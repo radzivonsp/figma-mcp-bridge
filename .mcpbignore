@@ -17,3 +17,16 @@ plugin
 CLAUDE.md
 README.md
 LICENSE
+FIXING_PLAN.md
+.gitattributes
+# Reduce node_modules bloat
+node_modules/**/test
+node_modules/**/tests
+node_modules/**/.github
+node_modules/**/dist-test-*
+node_modules/**/*.md
+node_modules/**/*.ts
+node_modules/**/CHANGELOG*
+node_modules/**/HISTORY*
+node_modules/**/changelog*
+node_modules/**/*.map

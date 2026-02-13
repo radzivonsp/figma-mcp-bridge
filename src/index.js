@@ -14,6 +14,14 @@ import { execSync } from 'child_process';
 
 const PORT = parseInt(process.env.FIGMA_BRIDGE_PORT || '3055', 10);
 
+// Catch all uncaught errors and write to stderr (never stdout, which is the MCP channel)
+process.on('uncaughtException', (error) => {
+  console.error('[FigmaMCP] Uncaught exception:', error.message);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[FigmaMCP] Unhandled rejection:', reason);
+});
+
 function killStaleProcess(port) {
   const isWindows = process.platform === 'win32';
 
@@ -78,12 +86,8 @@ function killStaleProcess(port) {
 async function main() {
   console.error('[FigmaMCP] Starting Figma MCP Bridge...');
 
-  // Kill any stale process holding our configured port
-  killStaleProcess(PORT);
-
-  // Create and start WebSocket bridge
+  // Create the bridge (does not start the WebSocket server yet)
   const bridge = new FigmaBridge(PORT);
-  await bridge.start();
 
   // Log connection events
   bridge.on('connected', (info) => {
@@ -108,11 +112,26 @@ async function main() {
   // Create MCP server
   const server = createServer(bridge, config);
 
-  // Connect to stdio transport (Claude communication)
+  // Connect MCP stdio transport FIRST — this must succeed for Claude to communicate
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.error(`[FigmaMCP] MCP server running on port ${PORT}. Waiting for Figma plugin connection...`);
+  console.error('[FigmaMCP] MCP server connected to stdio transport');
+
+  // Now start the WebSocket bridge (non-fatal — if it fails, MCP still works)
+  try {
+    killStaleProcess(PORT);
+  } catch (e) {
+    console.error(`[FigmaMCP] Could not clean stale processes: ${e.message}`);
+  }
+
+  try {
+    await bridge.start();
+    console.error(`[FigmaMCP] WebSocket server running on port ${bridge.port}. Waiting for Figma plugin...`);
+  } catch (e) {
+    console.error(`[FigmaMCP] WebSocket server failed to start: ${e.message}`);
+    console.error('[FigmaMCP] MCP server is still running — tools will report "not connected" until WebSocket is available');
+  }
 
   // Graceful shutdown helper
   const shutdown = async (reason) => {
